@@ -1084,11 +1084,12 @@
     { id: "dark", name: "Dark", note: "Easier at night and saves battery on many phones.", c: ["#000000", "#15171C", "#1C1F26", "#3A6DFF", "#3A404C"] },
     { id: "eyecare", name: "Eye care", note: "Warm paper tones with less blue light for long sessions.", c: ["#3B3225", "#FBF5E6", "#F3EAD3", "#2A55C8", "#CDBF9F"] },
   ];
-  const currentTheme = () => document.documentElement.dataset.theme || "light";
+  const currentTheme = () => document.documentElement.dataset.theme
+    || (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
   function applyTheme(id) {
     const root = document.documentElement;
-    if (id === "light") delete root.dataset.theme; else root.dataset.theme = id;
+    root.dataset.theme = id;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = THEMES.find((t) => t.id === id).c[0];
   }
@@ -1116,6 +1117,17 @@
           </span>
         </label>`;
     }).join("");
+  }
+
+  // Shared pages cannot start downloads, so show the data with a copy button instead.
+  function showDataCopy(json) {
+    openModal(`
+      ${modalHead("Your data")}
+      <div class="modal-body">
+        <p style="margin:0">Copy this text and save it in a file on your device.</p>
+        <textarea class="textarea" id="data-copy" readonly rows="12" style="font-family:ui-monospace,Consolas,monospace;font-size:13px">${esc(json)}</textarea>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" data-act="close">Close</button><button class="btn btn-primary" data-act="copy-data">${icon("copy", "sm")}Copy</button></div>`, { label: "Your data" });
   }
 
   // ---------- Modals ----------
@@ -1451,6 +1463,7 @@
       }
       case "download": {
         const { pass, ...data } = u;
+        if (window.SERA_EMBED) { showDataCopy(JSON.stringify(data, null, 2)); break; }
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -1464,6 +1477,11 @@
           delete db.users[u.srid]; db.session = null; persist(); go("#/welcome");
         }, true);
         break;
+      case "copy-data": {
+        const ta = $("#data-copy");
+        (navigator.clipboard?.writeText(ta.value) || Promise.reject()).then(() => toast("Copied"), () => { ta.focus(); ta.select(); toast("Selected. Press Ctrl+C to copy."); });
+        break;
+      }
       case "dialog-ok": { const fn = pendingOk; pendingOk = null; closeModal(); if (fn) fn(); break; }
     }
   });
