@@ -1,12 +1,7 @@
 /* SERA Apply — design tokens, layout and components.
    Palette: SERA blue, white and black. Status colours only where meaning needs them. */
 
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifBookFLF.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifBookFLF-Italic.otf") format("opentype"); font-weight: 400; font-style: italic; font-display: swap; }
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifFLF.otf") format("opentype"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifFLF-Demibold.otf") format("opentype"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifBldFLF.otf") format("opentype"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "SERA Sans"; src: url("../assets/fonts/SansSerifExbFLF.otf") format("opentype"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "SERA Sans"; src: local("Arial"), url("../assets/fonts/arial.ttf") format("truetype"); font-weight: 400 800; font-style: normal; font-display: swap; }
 
 :root {
   --blue: #0046FF;
@@ -45,8 +40,8 @@
   --logo-plate: transparent;
   color-scheme: light;
 
-  --font: "SERA Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-  --font-title: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font: "SERA Sans", Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-title: "SERA Sans", Arial, "Helvetica Neue", Helvetica, sans-serif;
 
   --r-sm: 8px;
   --r-md: 12px;
