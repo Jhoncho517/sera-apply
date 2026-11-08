@@ -110,7 +110,7 @@ h3.h3 { font-size: 19px; font-weight: 700; margin: 0; }
 .auth-visual {
   position: relative; color: #fff; padding: 48px clamp(28px, 5vw, 72px);
   background: #0046FF url("../assets/welcome-blue.jpg") right bottom / cover no-repeat;
-  display: flex; flex-direction: column; justify-content: space-between; gap: 40px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 36px; overflow: hidden;
 }
 .auth-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0, 70, 255, .55) 0%, rgba(0, 70, 255, .25) 55%, rgba(0, 70, 255, 0) 100%); pointer-events: none; }
 .auth-visual > * { position: relative; z-index: 1; }
