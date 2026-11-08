@@ -52,7 +52,38 @@
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const INDEX_RE = /^[SP]\d{4}\/\d{4}\/\d{4}$/i;
-  const isPhone = (v) => /^(?:\+?255|0)[67]\d{8}$/.test(String(v || "").replace(/[\s-]/g, ""));
+  // Phone numbers are stored in international format: +<country code><number>.
+  const COUNTRIES = [
+    ["Tanzania","255"],["Kenya","254"],["Uganda","256"],["Rwanda","250"],["Burundi","257"],["DR Congo","243"],["Zambia","260"],["Malawi","265"],["Mozambique","258"],["Zimbabwe","263"],["South Africa","27"],["Ethiopia","251"],["Somalia","252"],["South Sudan","211"],["Nigeria","234"],["Ghana","233"],["Egypt","20"],["Morocco","212"],["Algeria","213"],["Tunisia","216"],["Senegal","221"],["Cameroon","237"],["Ivory Coast","225"],["Angola","244"],["Namibia","264"],["Botswana","267"],["Sudan","249"],["Madagascar","261"],["Mauritius","230"],
+    ["United Kingdom","44"],["Ireland","353"],["France","33"],["Germany","49"],["Italy","39"],["Spain","34"],["Portugal","351"],["Netherlands","31"],["Belgium","32"],["Switzerland","41"],["Austria","43"],["Sweden","46"],["Norway","47"],["Denmark","45"],["Finland","358"],["Poland","48"],["Russia","7"],["Turkey","90"],["Greece","30"],
+    ["United States","1"],["Canada","1"],["Mexico","52"],["Brazil","55"],["Argentina","54"],["Colombia","57"],["Chile","56"],["Peru","51"],["Jamaica","1876"],
+    ["India","91"],["Pakistan","92"],["Bangladesh","880"],["Sri Lanka","94"],["Nepal","977"],["China","86"],["Japan","81"],["South Korea","82"],["Singapore","65"],["Malaysia","60"],["Indonesia","62"],["Philippines","63"],["Thailand","66"],["Vietnam","84"],["Hong Kong","852"],
+    ["United Arab Emirates","971"],["Saudi Arabia","966"],["Qatar","974"],["Oman","968"],["Kuwait","965"],["Bahrain","973"],["Israel","972"],["Jordan","962"],["Iran","98"],["Iraq","964"],["Australia","61"],["New Zealand","64"],
+  ];
+  const CC_ALT = COUNTRIES.map((x) => x[1]).filter((c, i, a) => a.indexOf(c) === i).sort((a, b) => b.length - a.length).join("|");
+  // Keep digits only and require a leading + (or 00), so the country is always known.
+  function normPhone(v) {
+    const raw = String(v || "").trim().replace(/[\s().-]/g, "");
+    if (!/^(\+|00)/.test(raw)) return "";
+    return "+" + raw.replace(/^(\+|00)/, "").replace(/\D/g, "");
+  }
+  // Older Tanzanian entries (0712 345 678 or 255712345678) become +255712345678.
+  function upgradePhone(v) {
+    const raw = String(v || "").trim().replace(/[\s().-]/g, "");
+    if (!raw || /^(\+|00)/.test(raw)) return normPhone(raw) || raw;
+    if (/^0[67]\d{8}$/.test(raw)) return "+255" + raw.slice(1);
+    if (/^255[67]\d{8}$/.test(raw)) return "+" + raw;
+    return raw;
+  }
+  const isPhone = (v) => {
+    const n = normPhone(v);
+    if (!/^\+[1-9]\d{7,14}$/.test(n)) return false;
+    if (n.startsWith("+255")) return /^\+255[67]\d{8}$/.test(n);
+    return true;
+  };
+  const PHONE_MSG = "Start with the country code, like +255 712 345 678 or +44 7700 900123.";
+  const phoneKey = (v) => normPhone(upgradePhone(v));
+  const countryOptions = () => COUNTRIES.map(([n, c]) => `<option value="${c}" ${n === "Tanzania" ? "selected" : ""}>${esc(n)} (+${c})</option>`).join("");
 
   // ---------- Icons (Lucide, outline) ----------
   const ICONS = {
@@ -119,7 +150,15 @@
   function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const d = JSON.parse(raw);
+        d.users = d.users || {};
+        Object.values(d.users).forEach((u) => {
+          const c = u.profile && u.profile.contact;
+          if (c) { if (c.phone) c.phone = upgradePhone(c.phone); if (c.altPhone) c.altPhone = upgradePhone(c.altPhone); }
+        });
+        return d;
+      }
     } catch (e) { /* storage unavailable: start empty */ }
     return { users: {}, session: null };
   }
@@ -159,8 +198,11 @@
   const findUser = (login) => {
     const key = login.trim();
     if (/^srid\d{5}$/i.test(key)) return db.users[key.toUpperCase()];
-    return Object.values(db.users).find((u) => u.email.toLowerCase() === key.toLowerCase());
+    if (key.includes("@")) return Object.values(db.users).find((u) => u.email.toLowerCase() === key.toLowerCase());
+    return findByPhone(key);
   };
+  const findByPhone = (v) => { const k = phoneKey(v); return k ? Object.values(db.users).find((u) => phoneKey(u.profile?.contact?.phone) === k) : undefined; };
+  const maskEmail = (e) => String(e).replace(/^(.).*(@.*)$/, "$1***$2");
 
   // ---------- Profile sections and results maths ----------
   const SECTIONS = [
@@ -206,7 +248,8 @@
 
   const VALIDATE = {
     "contact.email": (v) => (!v || EMAIL_RE.test(v) ? "" : "Enter an email like name@example.com."),
-    "contact.phone": (v) => (!v || isPhone(v) ? "" : "Enter a Tanzanian mobile number like 0712 345 678."),
+    "contact.phone": (v) => (!v || isPhone(v) ? "" : PHONE_MSG),
+    "contact.altPhone": (v) => (!v || isPhone(v) ? "" : PHONE_MSG),
     "education.cseeIndex": (v) => (!v || INDEX_RE.test(v) ? "" : "Index number should look like S0101/0001/2022."),
     "education.acseeIndex": (v) => (!v || INDEX_RE.test(v) ? "" : "Index number should look like S0101/0001/2025."),
     "personal.dob": (v) => (v && new Date(v) > new Date() ? "Date of birth cannot be in the future." : ""),
@@ -290,15 +333,26 @@
   }
 
   function signinForm() {
+    const saved = Object.values(db.users).sort((a, b) => (b.lastLogin || "").localeCompare(a.lastLogin || ""));
+    const cards = saved.length ? `
+      <div role="group" aria-label="Accounts on this device">
+        <div class="small muted" style="margin-bottom:8px">Accounts on this device. Tap yours, then enter your password.</div>
+        ${saved.map((u) => { const n = [u.profile.personal.first, u.profile.personal.last].filter(Boolean).join(" ") || u.email; return `
+          <button type="button" class="btn btn-block" data-act="pick-account" data-srid="${u.srid}" style="justify-content:flex-start;text-align:left;margin-bottom:8px">
+            <span aria-hidden="true" style="display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;margin-right:10px;flex:none">${esc((n[0] || "?").toUpperCase())}</span>
+            <span><strong>${esc(n)}</strong><br><span class="small muted">${u.srid} · ${esc(maskEmail(u.email))}</span></span>
+          </button>`; }).join("")}
+      </div>` : "";
     return `
       <form class="form" id="signin" novalidate>
         <div>
-          <h2 class="h2">Sign in</h2>
-          <p class="muted" style="margin:8px 0 0">Use your email or your SERA ID. New here? <a href="#/signup">Create an account</a>.</p>
+          <h2 class="h2">${saved.length ? "Welcome back" : "Sign in"}</h2>
+          <p class="muted" style="margin:8px 0 0">Use your email, phone number or SERA ID. One person, one account. New here? <a href="#/signup">Create an account</a>.</p>
         </div>
+        ${cards}
         <div class="err" id="signin-err" role="alert"></div>
-        <div class="field"><label for="si-login">Email or SERA ID<span class="req">*</span></label>
-          <input class="input" id="si-login" name="login" autocomplete="username" placeholder="name@example.com or SRID12345"></div>
+        <div class="field"><label for="si-login">Email, phone or SERA ID<span class="req">*</span></label>
+          <input class="input" id="si-login" name="login" autocomplete="username" placeholder="name@example.com, +255712345678 or SRID12345"></div>
         <div class="field"><label for="si-pw">Password<span class="req">*</span></label>
           <input class="input" id="si-pw" name="pw" type="password" autocomplete="current-password"></div>
         <label class="check"><input type="checkbox" data-act="showpw" data-for="si-pw"> Show password</label>
@@ -320,7 +374,10 @@
           <div class="field"><label for="su-last">Last name<span class="req">*</span></label><input class="input" id="su-last" name="last" autocomplete="family-name"></div>
         </div>
         <div class="field"><label for="su-email">Email<span class="req">*</span></label><input class="input" id="su-email" name="email" type="email" autocomplete="email" placeholder="name@example.com"></div>
-        <div class="field"><label for="su-phone">Mobile number<span class="req">*</span></label><input class="input" id="su-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0712 345 678"></div>
+        <div class="field"><label for="su-phone">Mobile number<span class="req">*</span></label>
+          <div style="display:flex;gap:8px"><select class="select" id="su-cc" aria-label="Country" style="flex:0 0 46%">${countryOptions()}</select>
+          <input class="input" id="su-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="+255 " placeholder="+255 712 345 678" style="flex:1"></div>
+          <span class="hint">Any country. Starts with the country code.</span></div>
         <div class="grid-2">
           <div class="field"><label for="su-pw">Password<span class="req">*</span></label><input class="input" id="su-pw" name="pw" type="password" autocomplete="new-password"><span class="hint">At least 8 characters.</span></div>
           <div class="field"><label for="su-pw2">Confirm password<span class="req">*</span></label><input class="input" id="su-pw2" name="pw2" type="password" autocomplete="new-password"></div>
@@ -340,6 +397,7 @@
       return;
     }
     db.session = u.srid;
+    u.lastLogin = new Date().toISOString();
     persist();
     go("#/dashboard");
   }
@@ -350,8 +408,19 @@
     const fail = (m) => { err.innerHTML = icon("alert", "sm") + esc(m); err.scrollIntoView({ block: "nearest" }); };
     if (!v.first || !v.last) return fail("Enter your first and last name.");
     if (!EMAIL_RE.test(v.email)) return fail("Enter an email like name@example.com.");
-    if (findUser(v.email)) return fail("An account with this email already exists. Sign in instead.");
-    if (!isPhone(v.phone)) return fail("Enter a Tanzanian mobile number like 0712 345 678.");
+    const dupe = (u, why) => {
+      fail(`You already have an account (${u.srid}) with this ${why}. Sign in instead of creating another one.`);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn"; b.textContent = "Sign in as " + u.srid;
+      b.dataset.act = "pick-account"; b.dataset.srid = u.srid;
+      err.appendChild(b);
+    };
+    const exE = findUser(v.email);
+    if (exE) return dupe(exE, "email");
+    if (!isPhone(v.phone)) return fail(PHONE_MSG);
+    v.phone = normPhone(v.phone);
+    const exP = findByPhone(v.phone);
+    if (exP) return dupe(exP, "phone number");
     if (form.pw.value.length < 8) return fail("Your password needs at least 8 characters.");
     if (form.pw.value !== form.pw2.value) return fail("The two passwords do not match.");
     if (!form.consent.checked) return fail("Tick the box to agree that SERA keeps your details.");
@@ -362,6 +431,7 @@
       email: v.email,
       pass: await hashPassword(form.pw.value, srid),
       createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
       consent: { storeDetails: new Date().toISOString() },
       profile: {
         personal: { first: v.first, middle: "", last: v.last },
@@ -378,7 +448,7 @@
       <div class="modal-body receipt" style="padding-top:34px">
         <div class="ok-ring">${icon("check")}</div>
         <h2 class="h2">Welcome to SERA Apply, ${esc(v.first)}</h2>
-        <p class="muted" style="margin:0">This is your SERA ID. Write it down. You can sign in with it.</p>
+        <p class="muted" style="margin:0">This is your SERA ID. It is saved on this device, so next time just tap your account and enter your password. You can also sign in with it.</p>
         <div class="big">${srid}</div>
       </div>
       <div class="modal-foot"><button class="btn btn-primary" data-act="close">Go to my dashboard</button></div>`, { label: "Your SERA ID" });
@@ -676,9 +746,9 @@
         <fieldset class="fieldset"><legend>How universities can reach you</legend>
           <div class="grid-2">
             ${fld("contact.email", "Email", { req: true, type: "email", auto: "email" })}
-            ${fld("contact.phone", "Mobile number", { req: true, type: "tel", mode: "tel", auto: "tel", ph: "0712 345 678" })}
+            ${fld("contact.phone", "Mobile number", { req: true, type: "tel", mode: "tel", auto: "tel", ph: "+255 712 345 678", hint: "Start with the country code. Any country." })}
           </div>
-          <div style="margin-top:18px">${fld("contact.altPhone", "Another number (parent or guardian)", { type: "tel", mode: "tel", hint: "Optional. Used only if we cannot reach you." })}</div>
+          <div style="margin-top:18px">${fld("contact.altPhone", "Another number (parent or guardian)", { type: "tel", mode: "tel", ph: "+255 712 345 678", hint: "Optional. Start with the country code. Used only if we cannot reach you." })}</div>
         </fieldset>`;
     }
 
@@ -1398,6 +1468,15 @@
       case "close": closeModal(); break;
       case "menu": $("#sidebar").classList.toggle("open"); break;
       case "showpw": { const f = document.getElementById(t.dataset.for); f.type = t.checked ? "text" : "password"; break; }
+      case "pick-account": {
+        e.preventDefault();
+        if (route().name !== "welcome") location.hash = "#/welcome";
+        setTimeout(() => {
+          const l = document.getElementById("si-login"), u = db.users[t.dataset.srid];
+          if (l && u) { l.value = u.srid; const pw = document.getElementById("si-pw"); if (pw) pw.focus(); }
+        }, 30);
+        break;
+      }
       case "signout": e.preventDefault(); db.session = null; persist(); go("#/welcome"); break;
       case "collapse": ui.collapsed[id] = !ui.collapsed[id]; t.setAttribute("aria-expanded", String(!ui.collapsed[id])); break;
       case "copy": {
@@ -1484,6 +1563,14 @@
       }
       case "dialog-ok": { const fn = pendingOk; pendingOk = null; closeModal(); if (fn) fn(); break; }
     }
+  });
+
+  document.addEventListener("change", (e) => {
+    if (e.target.id !== "su-cc") return;
+    const ph = document.getElementById("su-phone");
+    const rest = normPhone(ph.value).slice(1).replace(new RegExp("^(" + CC_ALT + ")"), "");
+    ph.value = "+" + e.target.value + " " + rest;
+    ph.focus();
   });
 
   document.addEventListener("input", (e) => {
