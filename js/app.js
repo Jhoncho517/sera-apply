@@ -299,23 +299,13 @@
   // ---------- Auth screens ----------
   function renderAuth(tab) {
     document.title = (tab === "signup" ? "Create account" : "Sign in") + " · SERA Apply";
-    const admitting = D.institutions.filter((i) => i.admits).length;
     root.innerHTML = `
       <div class="auth">
         <section class="auth-visual" aria-label="About SERA Apply">
           <div class="auth-badge"><img src="assets/sera-logo.svg" alt="SERA"><span>APPLY</span></div>
           <div>
             <h1 class="auth-headline">One application. Every university in Tanzania.</h1>
-            <ul class="auth-points">
-              ${[
-                "Fill in your profile and Form Six results once.",
-                `Search all ${D.institutions.length} TCU-registered institutions. ${admitting} admit Form Six leavers in 2026/27.`,
-                "Track every application and admission in one place.",
-                "Find scholarships, including the Samia Scholarship, and the HESLB loan.",
-              ].map((t) => `<li><span class="dot">${icon("check")}</span><span>${esc(t)}</span></li>`).join("")}
-            </ul>
           </div>
-          <p class="auth-foot">Built by SERA, Student Empowerment and Resource Access, for Form Six leavers.</p>
         </section>
         <section class="auth-panel">
           <div class="auth-card">
