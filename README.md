@@ -51,15 +51,31 @@ or `python -m http.server 8000` and open http://localhost:8000.
 | Financial aid | Puts the Samia Scholarship first, links the HESLB loan straight to OLAMS, and lists every other scholarship with a "May fit me" filter. |
 | Settings | Lets the student pick a theme (Light, Dark or Eye care), download or delete their data, and use prototype tools that stand in for university decisions. The theme is saved on the device. |
 
-## Data
+## Editing texts and data
 
-The reference data is generated from `../uix/sera-apply-assets/sera-apply-assets/data/`. To regenerate it after you edit the CSV or JSON files:
+Page texts and reference data live in `content/`. The app reads them when it starts, so a change shows on the next visit.
 
-```
-node tools/build-data.mjs
-```
+| File | What it holds |
+|---|---|
+| `content/site.json` | Sign-in headline and note, dashboard note, Financial aid texts and loan link, TCU entry requirements and windows |
+| `content/key-dates.json` | The key dates on the dashboard |
+| `content/scholarships.json` | Scholarships: texts, which one is featured, and the "May fit me" rule |
+| `content/institutions.json` | The 104 TCU-registered institutions |
+| `content/schools.json` | The 1,103 ACSEE schools used in the school search |
 
-This writes `js/data.js` (104 institutions, 1,103 schools and 9 scholarships).
+### With Pages CMS (recommended)
+
+1. Go to [app.pagescms.org](https://app.pagescms.org) and sign in with GitHub.
+2. Open **Jhoncho517/sera-apply** (the first time, install the Pages CMS GitHub app and give it access to this repo).
+3. Pick a section on the left (Page texts, Key dates, Scholarships, Universities), edit, and press **Save**.
+
+Each save is a commit to `main`, and GitHub Pages republishes the site in a minute or two. The forms are defined in [`.pages.yml`](.pages.yml).
+
+### On GitHub
+
+Open a file in `content/`, click the pencil, edit and commit. Keep the JSON valid (quotes, commas). This is the way to edit `content/schools.json`, which is too long for a form.
+
+Never change an institution's `id`: students' saved applications point to it.
 
 ## Limits of this prototype
 

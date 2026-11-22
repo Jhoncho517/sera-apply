@@ -1,0 +1,1044 @@
+{
+  "institutions": [
+    {
+      "id": "udsm",
+      "name": "University of Dar es Salaam (UDSM)",
+      "short": "UDSM",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "sua",
+      "name": "Sokoine University of Agriculture (SUA)",
+      "short": "SUA",
+      "type": "university",
+      "location": "Morogoro",
+      "region": "Morogoro",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "out",
+      "name": "Open University of Tanzania (OUT)",
+      "short": "OUT",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "suza",
+      "name": "State University of Zanzibar (SUZA)",
+      "short": "SUZA",
+      "type": "university",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "mu",
+      "name": "Mzumbe University (MU)",
+      "short": "MU",
+      "type": "university",
+      "location": "Morogoro",
+      "region": "Morogoro",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "muhas",
+      "name": "Muhimbili University of Health and Allied Sciences (MUHAS)",
+      "short": "MUHAS",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "aru",
+      "name": "Ardhi University (ARU)",
+      "short": "ARU",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "udom",
+      "name": "University of Dodoma (UDOM)",
+      "short": "UDOM",
+      "type": "university",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "must",
+      "name": "Mbeya University of Science and Technology (MUST)",
+      "short": "MUST",
+      "type": "university",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "mocu",
+      "name": "Moshi Cooperative University (MoCU)",
+      "short": "MoCU",
+      "type": "university",
+      "location": "Kilimanjaro (Moshi)",
+      "region": "Kilimanjaro",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "mnuat",
+      "name": "Mwalimu Nyerere University of Agriculture and Technology (MNUAT)",
+      "short": "MNUAT",
+      "type": "university",
+      "location": "Mara (Musoma)",
+      "region": "Mara",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "ku",
+      "name": "Kairuki University (KU)",
+      "short": "KU",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "sumait",
+      "name": "Abdulrahman Al-Sumait University (SUMAIT)",
+      "short": "SUMAIT",
+      "type": "university",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "saut",
+      "name": "St. Augustine University of Tanzania (SAUT)",
+      "short": "SAUT",
+      "type": "university",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "zu",
+      "name": "Zanzibar University (ZU)",
+      "short": "ZU",
+      "type": "university",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "tuma",
+      "name": "Tumaini University Makumira (TUMA)",
+      "short": "TUMA",
+      "type": "university",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "aku",
+      "name": "Aga Khan University (AKU)",
+      "short": "AKU",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "cuhas",
+      "name": "Catholic University of Health and Allied Sciences (CUHAS)",
+      "short": "CUHAS",
+      "type": "university",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "uoa",
+      "name": "University of Arusha (UoA)",
+      "short": "UoA",
+      "type": "university",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "teku",
+      "name": "Teofilo Kisanji University (TEKU)",
+      "short": "TEKU",
+      "type": "university",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "mwecau",
+      "name": "Mwenge Catholic University (MWECAU)",
+      "short": "MWECAU",
+      "type": "university",
+      "location": "Kilimanjaro (Moshi)",
+      "region": "Kilimanjaro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "mum",
+      "name": "Muslim University of Morogoro (MUM)",
+      "short": "MUM",
+      "type": "university",
+      "location": "Morogoro",
+      "region": "Morogoro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "uoi",
+      "name": "University of Iringa (UoI)",
+      "short": "UoI",
+      "type": "university",
+      "location": "Iringa",
+      "region": "Iringa",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "sjut",
+      "name": "St. John's University of Tanzania (SJUT)",
+      "short": "SJUT",
+      "type": "university",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "kiut",
+      "name": "Kampala International University in Tanzania (KIUT)",
+      "short": "KIUT",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "uaut",
+      "name": "United African University of Tanzania (UAUT)",
+      "short": "UAUT",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "rucu",
+      "name": "Ruaha Catholic University (RUCU)",
+      "short": "RUCU",
+      "type": "university",
+      "location": "Iringa",
+      "region": "Iringa",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "cuom",
+      "name": "Catholic University of Mbeya (CUoM)",
+      "short": "CUoM",
+      "type": "university",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "dartu",
+      "name": "Dar es Salaam Tumaini University (DarTU)",
+      "short": "DarTU",
+      "type": "university",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "kcmc-university",
+      "name": "KCMC University",
+      "short": "",
+      "type": "university",
+      "location": "Kilimanjaro (Moshi)",
+      "region": "Kilimanjaro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "duce",
+      "name": "Dar es Salaam University College of Education (DUCE)",
+      "short": "DUCE",
+      "type": "university_college_or_campus",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "muce",
+      "name": "Mkwawa University College of Education (MUCE)",
+      "short": "MUCE",
+      "type": "university_college_or_campus",
+      "location": "Iringa",
+      "region": "Iringa",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "mudcco",
+      "name": "Mzumbe University Dar es Salaam Campus College (MUDCCo)",
+      "short": "MUDCCo",
+      "type": "university_college_or_campus",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "mumcco",
+      "name": "Mzumbe University Mbeya Campus College (MUMCCo)",
+      "short": "MUMCCo",
+      "type": "university_college_or_campus",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "must-rukwa-campus-college",
+      "name": "MUST Rukwa Campus College",
+      "short": "",
+      "type": "university_college_or_campus",
+      "location": "Rukwa",
+      "region": "Rukwa",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "must-mccte",
+      "name": "MUST Mtwara Campus College of Technical Education (MUST-MCCTE)",
+      "short": "MUST-MCCTE",
+      "type": "university_college_or_campus",
+      "location": "Mtwara",
+      "region": "Mtwara",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "sua-mizengo-pinda-campus-college",
+      "name": "SUA Mizengo Pinda Campus College",
+      "short": "",
+      "type": "university_college_or_campus",
+      "location": "Katavi",
+      "region": "Katavi",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "kicob",
+      "name": "Kizumbi Institute of Cooperative Business Education (KICoB)",
+      "short": "KICoB",
+      "type": "university_college_or_campus",
+      "location": "Shinyanga",
+      "region": "Shinyanga",
+      "ownership": "Public",
+      "admits": true
+    },
+    {
+      "id": "amucta",
+      "name": "Archbishop Mihayo University College of Tabora (AMUCTA)",
+      "short": "AMUCTA",
+      "type": "university_college_or_campus",
+      "location": "Tabora",
+      "region": "Tabora",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "juco",
+      "name": "Jordan University College (JUCo)",
+      "short": "JUCo",
+      "type": "university_college_or_campus",
+      "location": "Morogoro",
+      "region": "Morogoro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "sfuchas",
+      "name": "St. Francis University College of Health and Allied Sciences (SFUCHAS)",
+      "short": "SFUCHAS",
+      "type": "university_college_or_campus",
+      "location": "Morogoro (Ifakara)",
+      "region": "Morogoro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "stemmuco",
+      "name": "Stella Maris Mtwara University College (STeMMUCo)",
+      "short": "STeMMUCo",
+      "type": "university_college_or_campus",
+      "location": "Mtwara",
+      "region": "Mtwara",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "maruco",
+      "name": "Marian University College (MARUCo)",
+      "short": "MARUCo",
+      "type": "university_college_or_campus",
+      "location": "Pwani (Bagamoyo)",
+      "region": "Pwani",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "sjchas",
+      "name": "St. Joseph University College of Health and Allied Sciences (SJCHAS)",
+      "short": "SJCHAS",
+      "type": "university_college_or_campus",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "sjcet",
+      "name": "St. Joseph University College of Engineering and Technology (SJCET)",
+      "short": "SJCET",
+      "type": "university_college_or_campus",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "mwenge-catholic-university-hedaru-campus-college",
+      "name": "Mwenge Catholic University Hedaru Campus College",
+      "short": "",
+      "type": "university_college_or_campus",
+      "location": "Kilimanjaro (Same)",
+      "region": "Kilimanjaro",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "st-augustine-university-of-tanzania-arusha-centre",
+      "name": "St. Augustine University of Tanzania Arusha Centre",
+      "short": "",
+      "type": "university_college_or_campus",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "Private",
+      "admits": true
+    },
+    {
+      "id": "atc",
+      "name": "Arusha Technical College (ATC)",
+      "short": "ATC",
+      "type": "non_university_institution",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "cfr",
+      "name": "Center for Foreign Relations (CFR)",
+      "short": "CFR",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "cawm",
+      "name": "College of African Wildlife Management Mweka (CAWM)",
+      "short": "CAWM",
+      "type": "non_university_institution",
+      "location": "Kilimanjaro (Moshi)",
+      "region": "Kilimanjaro",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "college-of-business-education-dar-es-salaam",
+      "name": "College of Business Education (CBE) Dar es Salaam",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "college-of-business-education-dodoma",
+      "name": "College of Business Education (CBE) Dodoma",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "college-of-business-education-mwanza",
+      "name": "College of Business Education (CBE) Mwanza",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "college-of-business-education-mbeya",
+      "name": "College of Business Education (CBE) Mbeya",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "dit",
+      "name": "Dar es Salaam Institute of Technology (DIT)",
+      "short": "DIT",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "dar-es-salaam-institute-of-technology-mwanza-campus",
+      "name": "Dar es Salaam Institute of Technology (DIT) Mwanza Campus",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "dmi",
+      "name": "Dar es Salaam Maritime Institute (DMI)",
+      "short": "DMI",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "eastc",
+      "name": "Eastern Africa Statistical Training Centre (EASTC)",
+      "short": "EASTC",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "iaa",
+      "name": "Institute of Accountancy Arusha (IAA)",
+      "short": "IAA",
+      "type": "non_university_institution",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-accountancy-arusha-dar-es-salaam-campus",
+      "name": "Institute of Accountancy Arusha (IAA) Dar es Salaam Campus",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-accountancy-arusha-babati",
+      "name": "Institute of Accountancy Arusha (IAA) Babati",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Manyara (Babati)",
+      "region": "Manyara",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "iae",
+      "name": "Institute of Adult Education (IAE)",
+      "short": "IAE",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "ifm",
+      "name": "Institute of Finance Management (IFM)",
+      "short": "IFM",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-finance-management-dodoma",
+      "name": "Institute of Finance Management (IFM) Dodoma",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-finance-management-mwanza",
+      "name": "Institute of Finance Management (IFM) Mwanza",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-finance-management-simiyu",
+      "name": "Institute of Finance Management (IFM) Simiyu",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Simiyu",
+      "region": "Simiyu",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "ipa",
+      "name": "Institute of Public Administration (IPA)",
+      "short": "IPA",
+      "type": "non_university_institution",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "irdp",
+      "name": "Institute of Rural Development Planning (IRDP)",
+      "short": "IRDP",
+      "type": "non_university_institution",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-rural-development-planning-mwanza",
+      "name": "Institute of Rural Development Planning (IRDP) Mwanza",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "isw",
+      "name": "Institute of Social Work (ISW)",
+      "short": "ISW",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "institute-of-social-work-kisangara-campus",
+      "name": "Institute of Social Work Kisangara Campus",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Kilimanjaro (Mwanga)",
+      "region": "Kilimanjaro",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "ita",
+      "name": "Institute of Tax Administration (ITA)",
+      "short": "ITA",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "kist",
+      "name": "Karume Institute of Science and Technology (KIST)",
+      "short": "KIST",
+      "type": "non_university_institution",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "lgti",
+      "name": "Local Government Training Institute (LGTI)",
+      "short": "LGTI",
+      "type": "non_university_institution",
+      "location": "Dodoma",
+      "region": "Dodoma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "ms-tcdc",
+      "name": "MS Training Centre for Development Cooperation (MS-TCDC)",
+      "short": "MS-TCDC",
+      "type": "non_university_institution",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "mwalimu-nyerere-memorial-academy-dar-es-salaam",
+      "name": "Mwalimu Nyerere Memorial Academy (MNMA) Dar es Salaam",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "mwalimu-nyerere-memorial-academy-zanzibar",
+      "name": "Mwalimu Nyerere Memorial Academy (MNMA) Zanzibar",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Zanzibar",
+      "region": "Zanzibar",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "mwalimu-nyerere-memorial-academy-pemba-campus",
+      "name": "Mwalimu Nyerere Memorial Academy (MNMA) Pemba Campus",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Pemba",
+      "region": "Pemba",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "nit",
+      "name": "National Institute of Transport (NIT)",
+      "short": "NIT",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "socaite",
+      "name": "Songea Catholic Institute of Technical Education (SOCAITE)",
+      "short": "SOCAITE",
+      "type": "non_university_institution",
+      "location": "Ruvuma (Songea)",
+      "region": "Ruvuma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-dar-es-salaam",
+      "name": "Tanzania Institute of Accountancy (TIA) Dar es Salaam",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-mbeya",
+      "name": "Tanzania Institute of Accountancy (TIA) Mbeya",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-mtwara",
+      "name": "Tanzania Institute of Accountancy (TIA) Mtwara",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mtwara",
+      "region": "Mtwara",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-mwanza",
+      "name": "Tanzania Institute of Accountancy (TIA) Mwanza",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-singida",
+      "name": "Tanzania Institute of Accountancy (TIA) Singida",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Singida",
+      "region": "Singida",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-kigoma",
+      "name": "Tanzania Institute of Accountancy (TIA) Kigoma",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Kigoma",
+      "region": "Kigoma",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-institute-of-accountancy-tanga",
+      "name": "Tanzania Institute of Accountancy (TIA) Tanga",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Tanga",
+      "region": "Tanga",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-public-service-college-dar-es-salaam",
+      "name": "Tanzania Public Service College (TPSC) Dar es Salaam",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tanzania-public-service-college-tabora",
+      "name": "Tanzania Public Service College (TPSC) Tabora",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Tabora",
+      "region": "Tabora",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "tipm",
+      "name": "Tanzania Institute of Project Management (TIPM)",
+      "short": "TIPM",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "ticd",
+      "name": "Tengeru Institute of Community Development (TICD)",
+      "short": "TICD",
+      "type": "non_university_institution",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "unique-academy-dar-es-salaam",
+      "name": "Unique Academy Dar es Salaam",
+      "short": "",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "wi",
+      "name": "Water Institute (WI)",
+      "short": "WI",
+      "type": "non_university_institution",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": true
+    },
+    {
+      "id": "nm-aist",
+      "name": "Nelson Mandela African Institution of Science and Technology (NM-AIST)",
+      "short": "NM-AIST",
+      "type": "registered_not_admitting",
+      "location": "Arusha",
+      "region": "Arusha",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "mzu",
+      "name": "Mwanza University (MzU)",
+      "short": "MzU",
+      "type": "registered_not_admitting",
+      "location": "Mwanza",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "rabininsia-university",
+      "name": "Rabininsia University",
+      "short": "",
+      "type": "registered_not_admitting",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "umst",
+      "name": "University of Medical Sciences and Technology (UMST)",
+      "short": "UMST",
+      "type": "registered_not_admitting",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "huea",
+      "name": "Hikmah University of East Africa (HUEA)",
+      "short": "HUEA",
+      "type": "registered_not_admitting",
+      "location": "Dar es Salaam",
+      "region": "Dar es Salaam",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "smmuco",
+      "name": "Stefano Moshi Memorial University College (SMMUCo)",
+      "short": "SMMUCo",
+      "type": "registered_not_admitting",
+      "location": "Kilimanjaro (Moshi)",
+      "region": "Kilimanjaro",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "mchas",
+      "name": "Mbeya College of Health and Allied Sciences (MCHAS)",
+      "short": "MCHAS",
+      "type": "registered_not_admitting",
+      "location": "Mbeya",
+      "region": "Mbeya",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "ardhi-university-mwanza-campus-college",
+      "name": "Ardhi University Mwanza Campus College",
+      "short": "",
+      "type": "registered_not_admitting",
+      "location": "Mwanza (Sengerema)",
+      "region": "Mwanza",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "udsm-kagera-campus-college",
+      "name": "UDSM Kagera Campus College",
+      "short": "",
+      "type": "registered_not_admitting",
+      "location": "Kagera",
+      "region": "Kagera",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "udsm-lindi-campus-college",
+      "name": "UDSM Lindi Campus College",
+      "short": "",
+      "type": "registered_not_admitting",
+      "location": "Lindi",
+      "region": "Lindi",
+      "ownership": "",
+      "admits": false
+    },
+    {
+      "id": "mzumbe-university-tanga-campus-college",
+      "name": "Mzumbe University Tanga Campus College",
+      "short": "",
+      "type": "registered_not_admitting",
+      "location": "Tanga (Kilindi)",
+      "region": "Tanga",
+      "ownership": "",
+      "admits": false
+    }
+  ]
+}

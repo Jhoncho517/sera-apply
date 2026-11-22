@@ -1,0 +1,32 @@
+{
+  "dates": [
+    {
+      "month": "JUN",
+      "year": "2027",
+      "title": "HESLB loan applications open",
+      "note": "Usually opens in June. Apply on OLAMS.",
+      "link": "https://olas.heslb.go.tz"
+    },
+    {
+      "month": "JUL",
+      "year": "2027",
+      "title": "Samia Scholarship next round",
+      "note": "Opens after ACSEE results.",
+      "link": "#/aid"
+    },
+    {
+      "month": "JUL",
+      "year": "2027",
+      "title": "TCU guidebook for 2027/28",
+      "note": "Programmes and application windows are published.",
+      "link": "https://www.tcu.go.tz"
+    },
+    {
+      "month": "SEP",
+      "year": "2027",
+      "title": "Mo Scholars Program next round",
+      "note": "The 2026 window ran 21 Sep to 8 Oct.",
+      "link": "#/aid"
+    }
+  ]
+}
