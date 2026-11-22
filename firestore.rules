@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// SERA Apply: each student can read and write only their own account.
+//   users/{uid}     the account
+//   srids/{SRID}    claims a SERA ID (one per account, never shared)
+//   phones/{+255…}  claims a mobile number given at sign-up (one account per number)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function userDoc(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function claimable() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        // Only while the account is being created, in the same transaction.
+        && !exists(userDoc(request.auth.uid));
+    }
+
+    match /users/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.srid is string
+        && getAfter(/databases/$(database)/documents/srids/$(request.resource.data.srid)).data.uid == uid
+        // The mobile number is optional at sign-up. If one is claimed, the claim must be this student's.
+        && (!('phoneClaim' in request.resource.data)
+            || (request.resource.data.phoneClaim is string
+                && getAfter(/databases/$(database)/documents/phones/$(request.resource.data.phoneClaim)).data.uid == uid));
+
+      // The SERA ID, sign-in email, join date and claimed number never change.
+      allow update: if signedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['uid', 'srid', 'email', 'createdAt', 'phoneClaim']);
+    }
+
+    match /srids/{srid} {
+      allow get: if signedIn();
+      allow create: if claimable()
+        && srid.matches('SRID[0-9]{5}')
+        && getAfter(userDoc(request.auth.uid)).data.srid == srid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /phones/{phone} {
+      allow get: if signedIn();
+      allow create: if claimable()
+        && phone.matches('[+][1-9][0-9]{7,14}')
+        && getAfter(userDoc(request.auth.uid)).data.phoneClaim == phone;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+  }
+}
