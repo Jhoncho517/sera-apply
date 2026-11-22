@@ -1,0 +1,264 @@
+# Pages CMS configuration — https://pagescms.org/docs/configuration/
+# Each entry below becomes a form in the editor at https://app.pagescms.org.
+# Saving commits the change to this repo. GitHub Pages rebuilds the site from `main` in a minute or two.
+#
+# The app reads these files from content/ when it starts (see loadContent in js/app.js).
+# The list of 1,103 ACSEE schools (content/schools.json) is too long for a form; edit it on GitHub.
+
+content:
+  # ---------------------------------------------------------------- Texts
+  - name: site
+    label: Page texts
+    type: file
+    path: content/site.json
+    format: json
+    fields:
+      - name: welcome
+        label: Welcome and sign-in page
+        type: object
+        fields:
+          - name: headline
+            label: Headline
+            type: string
+            required: true
+            description: The big line on the blue side of the sign-in page.
+          - name: signinNote
+            label: Note under the sign-in button
+            type: string
+            description: Leave empty to hide it.
+      - name: dashboard
+        label: Dashboard
+        type: object
+        fields:
+          - name: datesNote
+            label: Note under "Key dates"
+            type: text
+      - name: aid
+        label: Financial aid page
+        type: object
+        fields:
+          - name: intro
+            label: Introduction
+            type: text
+            description: Shown under the "Financial aid" title.
+          - name: loanTitle
+            label: Loan box title
+            type: string
+          - name: loanText
+            label: Loan box text
+            type: text
+          - name: loanUrl
+            label: Loan application website (OLAMS)
+            type: string
+            description: Used by every "OLAMS" button in the app.
+          - name: footnote
+            label: Note at the bottom of the page
+            type: text
+      - name: requirements
+        label: TCU entry requirements
+        type: object
+        description: Shown in the "Application requirements" window.
+        fields:
+          - name: label
+            label: Label
+            type: string
+            description: Small line above the title, e.g. "TCU 2026/27".
+          - name: general
+            label: Minimum for most programmes
+            type: text
+          - name: health
+            label: Minimum for health programmes
+            type: text
+          - name: window1Start
+            label: First window opens
+            type: date
+          - name: window1End
+            label: First window closes
+            type: date
+          - name: window1Open
+            label: First window is open now
+            type: boolean
+          - name: window2Start
+            label: Second window opens
+            type: date
+          - name: window2End
+            label: Second window closes
+            type: date
+          - name: window2Open
+            label: Second window is open now
+            type: boolean
+          - name: note
+            label: Note
+            type: text
+          - name: tcuUrl
+            label: TCU website
+            type: string
+          - name: points
+            label: ACSEE grade points
+            type: object
+            description: Used to work out each student's TCU points. Change only if TCU changes its scale.
+            fields:
+              - { name: A, label: A, type: number }
+              - { name: B, label: B, type: number }
+              - { name: C, label: C, type: number }
+              - { name: D, label: D, type: number }
+              - { name: E, label: E, type: number }
+              - { name: S, label: S, type: number }
+
+  # ---------------------------------------------------------------- Key dates
+  - name: key-dates
+    label: Key dates
+    type: file
+    path: content/key-dates.json
+    format: json
+    fields:
+      - name: dates
+        label: Dates on the dashboard
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.month} {fields.year} · {fields.title}"
+        fields:
+          - name: month
+            label: Month
+            type: string
+            required: true
+            description: Three capital letters, e.g. JUL.
+          - name: year
+            label: Year
+            type: string
+            required: true
+          - name: title
+            label: Title
+            type: string
+            required: true
+          - name: note
+            label: Note
+            type: string
+          - name: link
+            label: Link
+            type: string
+            description: 'A website (https://…) opens in a new tab. A page in the app starts with #, e.g. #/aid for Financial aid.'
+
+  # ---------------------------------------------------------------- Scholarships
+  - name: scholarships
+    label: Scholarships
+    type: file
+    path: content/scholarships.json
+    format: json
+    fields:
+      - name: scholarships
+        label: Scholarships and loans
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.name}"
+        fields:
+          - name: name
+            label: Name
+            type: string
+            required: true
+          - name: placement
+            label: Where it shows
+            type: select
+            required: true
+            description: Only one scholarship should be featured.
+            options:
+              values:
+                - { name: featured, label: Featured (big card at the top) }
+                - { name: list, label: In the list }
+                - { name: hidden, label: Hidden }
+          - name: type
+            label: Type
+            type: string
+            description: e.g. Scholarship, Scholarship + mentorship.
+          - name: sponsor
+            label: Sponsor
+            type: string
+          - name: status
+            label: Status
+            type: string
+            description: e.g. "2026 round done · next round July 2027".
+          - name: eligibility
+            label: Who can apply
+            type: text
+          - name: covers
+            label: What it covers
+            type: text
+          - name: timing
+            label: When
+            type: text
+          - name: how_to_apply
+            label: How to apply
+            type: text
+          - name: url
+            label: Official website
+            type: string
+          - name: fit
+            label: '"May fit me" rule'
+            type: select
+            description: How the app decides a student may qualify, from their results.
+            options:
+              values:
+                - { name: none, label: No check }
+                - { name: samia, label: "Science combination (PCB, PCM, CBG, PGM, CBA, PMC, CBN)" }
+                - { name: samia-extended, label: "Physics + Advanced Maths combination (PCM, PGM, PMC)" }
+                - { name: division-1, label: ACSEE Division I }
+                - { name: division-1-both, label: Division I in both CSEE and ACSEE }
+
+  # ---------------------------------------------------------------- Universities
+  - name: institutions
+    label: Universities
+    type: file
+    path: content/institutions.json
+    format: json
+    fields:
+      - name: institutions
+        label: TCU-registered institutions
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.name}"
+        fields:
+          - name: id
+            label: ID
+            type: string
+            required: true
+            description: Short unique code, e.g. udsm. Students' applications point to it, so never change it once set. Use lowercase letters, numbers and dashes.
+          - name: name
+            label: Full name
+            type: string
+            required: true
+          - name: short
+            label: Short name
+            type: string
+            description: e.g. UDSM.
+          - name: type
+            label: Type
+            type: select
+            required: true
+            options:
+              values:
+                - { name: university, label: University }
+                - { name: university_college_or_campus, label: University college / campus }
+                - { name: non_university_institution, label: Other degree-awarding institution }
+                - { name: registered_not_admitting, label: "Registered, not admitting" }
+          - name: location
+            label: Location
+            type: string
+            description: City, as shown in search results.
+          - name: region
+            label: Region
+            type: string
+            description: Used by the region filter.
+          - name: ownership
+            label: Ownership
+            type: select
+            options:
+              values: [Public, Private]
+          - name: admits
+            label: Admitting Form Six leavers this year
+            type: boolean

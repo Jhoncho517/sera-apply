@@ -1,0 +1,121 @@
+{
+  "scholarships": [
+    {
+      "name": "Samia Scholarship",
+      "placement": "featured",
+      "type": "Scholarship",
+      "sponsor": "Government of Tanzania (Ministry of Education, run with HESLB)",
+      "status": "2026 round done · next round July 2027",
+      "eligibility": "Top 2026 ACSEE (Form Six) performers in science combinations: PCB, PCM, CBG, PGM, CBA, PMC or CBN. About 1,000 places.",
+      "covers": "Study in STEM (science, technology, engineering and mathematics) programmes at Tanzanian universities. Check the HESLB guidelines for exactly what is paid.",
+      "timing": "Opens after ACSEE results (2026 window opened 28 July 2026). Students are selected on results, then confirm online.",
+      "how_to_apply": "Apply through HESLB's online system (OLAMS/OLAS) once the Ministry of Education publishes the list of eligible students.",
+      "url": "https://www.moe.go.tz",
+      "fit": "samia"
+    },
+    {
+      "name": "Samia Scholarship Extended (DS/AI+)",
+      "placement": "list",
+      "type": "Scholarship",
+      "sponsor": "Government of Tanzania (Ministry of Education)",
+      "status": "2026 round done · next round July 2027",
+      "eligibility": "About 50 students with exceptional ACSEE results in Physics and Advanced Mathematics.",
+      "covers": "Data science and artificial intelligence studies at IIT Madras Zanzibar.",
+      "timing": "Opens with the main Samia Scholarship after ACSEE results (late July).",
+      "how_to_apply": "Apply through the Ministry of Education's TEMIS portal (temis.moe.go.tz).",
+      "url": "https://www.moe.go.tz",
+      "fit": "samia-extended"
+    },
+    {
+      "name": "HESLB Student Loan",
+      "placement": "hidden",
+      "type": "Loan (repaid after graduation)",
+      "sponsor": "Higher Education Students' Loans Board (HESLB)",
+      "status": "2026/27 window closed · next opens about June 2027",
+      "eligibility": "Tanzanian students admitted to bachelor's (and some diploma) programmes who need financial help. About 280,000 students funded in 2026/27 (TZS 1.07 trillion).",
+      "covers": "Can cover tuition, meals and accommodation, books and stationery, field practicals and special faculty needs, depending on the student's need.",
+      "timing": "Usually opens in June and runs about 2–3 months (2026/27 window opened 19 June 2026).",
+      "how_to_apply": "Apply online through OLAMS. One-off, non-refundable application fee of TZS 30,000.",
+      "url": "https://www.heslb.go.tz",
+      "fit": "none"
+    },
+    {
+      "name": "Mwalimu Julius K. Nyerere Memorial Scholarship Fund",
+      "placement": "list",
+      "type": "Scholarship",
+      "sponsor": "Bank of Tanzania (BoT)",
+      "status": "No 2026 advert on the BoT page right now · watch for July 2027",
+      "eligibility": "Tanzanians who just finished ACSEE with Division One. Category A: women in science or mathematics. Category B: men and women in science, mathematics, IT, economics, accounting or finance.",
+      "covers": "Full scholarship: tuition and direct university costs, meals and accommodation, books and stationery, field practicals, plus a new laptop.",
+      "timing": "Usually advertised in late July with an August deadline (2025 deadline: 22 August 2025).",
+      "how_to_apply": "Download the form from the BoT website (or collect it at a BoT office), fill it in, scan it and email it to the Fund chairperson. Only shortlisted candidates are contacted.",
+      "url": "https://www.bot.go.tz/Scholarships",
+      "fit": "division-1"
+    },
+    {
+      "name": "NMB Nuru Yangu Scholarship",
+      "placement": "list",
+      "type": "Scholarship + mentorship",
+      "sponsor": "NMB Foundation (NMB Bank)",
+      "status": "Announced Sept 2026 · check whether still open",
+      "eligibility": "Form Six leavers from low-income families with excellent results. For 2026, NMB set aside TZS 1 billion for students with Division One (3–5 points).",
+      "covers": "Full tuition, stipend, field allowance, stationery and a laptop, all direct university costs, and a mentorship programme.",
+      "timing": "Announced September 2026 for the 2026/27 intake.",
+      "how_to_apply": "Register a profile on the NMB Foundation website, complete the form and attach certified PDF copies of documents. Only shortlisted candidates are contacted.",
+      "url": "https://foundation.nmbbank.co.tz/education",
+      "fit": "division-1"
+    },
+    {
+      "name": "Mo Scholars Program",
+      "placement": "list",
+      "type": "Scholarship + mentorship",
+      "sponsor": "Mo Dewji Foundation",
+      "status": "2026 window closed · next round about Sept 2027",
+      "eligibility": "Tanzanians aged 18–25 entering the first year of a bachelor's degree, with Division One at A-level (or diploma GPA 4.0+), admission to a recognised institution, financial need and community leadership.",
+      "covers": "Full tuition, accommodation, meals, study materials including a laptop, mentorship, leadership training and the alumni network. Any field. Renewable each year.",
+      "timing": "2026 window: 21 September – 8 October 2026.",
+      "how_to_apply": "Apply online on the Foundation's portal with transcripts, admission letter, NIDA number or birth certificate, proof of need (e.g. TASAF or local government letter) and a photo.",
+      "url": "https://modewjifoundation.org/our-issues/education/mo-scholars-program/",
+      "fit": "division-1"
+    },
+    {
+      "name": "Karimjee Foundation Scholarship",
+      "placement": "list",
+      "type": "Scholarship",
+      "sponsor": "Karimjee Foundation (Karimjee Jivanjee family)",
+      "status": "Check the portal",
+      "eligibility": "Tanzanian citizens schooled in Tanzania with Division One (or GPA 3.6+) at O-level and A-level, admitted to a bachelor's or diploma programme in Tanzania, with critical financial need. Priority for girls and students with disabilities.",
+      "covers": "Support for undergraduate or diploma study in Tanzania (amount not published). Recipients report results every semester.",
+      "timing": "No fixed deadline published. Selection includes an exam and interview.",
+      "how_to_apply": "Register at scholarship.karimjee.com; shortlisted students complete a full application (essay, letter, admission letter, fee structure, transcripts, CV, HESLB status). Contact: foundation@karimjee.com, +255 222 112 986.",
+      "url": "https://scholarship.karimjee.com",
+      "fit": "division-1-both"
+    },
+    {
+      "name": "Flaviana Matata Foundation",
+      "placement": "list",
+      "type": "Scholarship + mentorship",
+      "sponsor": "Flaviana Matata Foundation (FMF)",
+      "status": "Contact the foundation",
+      "eligibility": "Girls from underserved communities. FMF supports students from secondary school through college.",
+      "covers": "Scholarships and mentorship (details not published).",
+      "timing": "No public application window.",
+      "how_to_apply": "No online form. Contact FMF at TGB Building, Coca-Cola Rd, Mikocheni, Dar es Salaam, or through the contact page on its website.",
+      "url": "https://www.flavianamatatafoundation.org",
+      "fit": "none"
+    },
+    {
+      "name": "AfricAid University Scholarships",
+      "placement": "list",
+      "type": "Scholarship",
+      "sponsor": "AfricAid with Daring Girls (USA)",
+      "status": "Only for Kisa graduates",
+      "eligibility": "Young women who graduated from AfricAid's Kisa leadership programme in Tanzanian secondary schools.",
+      "covers": "University study for selected Kisa graduates (amount not published).",
+      "timing": "Competitive application; no public dates.",
+      "how_to_apply": "Ask your school's Kisa programme coordinator.",
+      "url": "https://www.globalgiving.org/projects/africaidscholarships/",
+      "fit": "none"
+    }
+  ]
+}

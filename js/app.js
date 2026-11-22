@@ -1,15 +1,55 @@
 /* SERA Apply — one application for universities in Tanzania.
    Sign-in uses Firebase Authentication; each student's account is stored in Firestore (see js/cloud.js).
-   Reference data (institutions, schools, scholarships, rules) comes from js/data.js. */
+   Texts and reference data (universities, schools, scholarships, key dates, TCU rules) live in content/*.json,
+   which can be edited with Pages CMS (see .pages.yml). */
 import * as cloud from "./cloud.js";
+
+// "no-cache" asks the server whether a file changed, so edits made in the CMS show up on the next visit.
+async function loadContent() {
+  const get = async (name) => {
+    const r = await fetch(`content/${name}.json`, { cache: "no-cache" });
+    if (!r.ok) throw new Error(`content/${name}.json: ${r.status}`);
+    return r.json();
+  };
+  const [site, dates, scholarships, institutions, schools] = await Promise.all(["site", "key-dates", "scholarships", "institutions", "schools"].map(get));
+  return { site, dates: dates.dates || [], scholarships: scholarships.scholarships || [], institutions: institutions.institutions || [], schools: schools.schools || [] };
+}
+let CONTENT;
+try {
+  CONTENT = await loadContent();
+} catch (e) {
+  console.error(e);
+  document.getElementById("root").innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center"><p>SERA Apply could not load. Check your internet connection and reload the page.</p></div>`;
+  throw e;
+}
 
 (() => {
   "use strict";
 
-  const D = window.SERA_DATA;
+  const SITE = CONTENT.site;
+  const TYPE_LABEL = {
+    university: "University",
+    university_college_or_campus: "University college / campus",
+    non_university_institution: "Other degree-awarding institution",
+    registered_not_admitting: "Registered, not admitting in 2026/27",
+  };
+  const REQ = SITE.requirements || {};
+  const D = {
+    institutions: CONTENT.institutions.filter((i) => i.id && i.name).map((i) => ({ ...i, short: i.short || "", ownership: i.ownership || "", typeLabel: TYPE_LABEL[i.type] || i.type || "" })),
+    schools: CONTENT.schools,
+    scholarships: CONTENT.scholarships.filter((s) => s.name && s.placement !== "hidden"),
+    rules: {
+      acsee_points: REQ.points || { A: 5, B: 4, C: 3, D: 2, E: 1, S: 0.5 },
+      tcu_minimum: { general: REQ.general || "", health: REQ.health || "" },
+      tcu_windows: [
+        { start: REQ.window1Start, end: REQ.window1End, open: !!REQ.window1Open },
+        { start: REQ.window2Start, end: REQ.window2End, open: !!REQ.window2Open },
+      ].filter((w) => w.start && w.end),
+    },
+  };
   const INST = Object.fromEntries(D.institutions.map((i) => [i.id, i]));
   const SCHOOLS = D.schools;
-  const OLAMS_URL = "https://olas.heslb.go.tz";
+  const OLAMS_URL = SITE.aid?.loanUrl || "https://olas.heslb.go.tz";
 
   // ---------- Reference lists ----------
   const REGIONS = ["Arusha", "Dar es Salaam", "Dodoma", "Geita", "Iringa", "Kagera", "Katavi", "Kigoma", "Kilimanjaro", "Lindi", "Manyara", "Mara", "Mbeya", "Morogoro", "Mtwara", "Mwanza", "Njombe", "Pwani", "Rukwa", "Ruvuma", "Shinyanga", "Simiyu", "Singida", "Songwe", "Tabora", "Tanga", "Kaskazini Unguja", "Kusini Unguja", "Mjini Magharibi", "Kaskazini Pemba", "Kusini Pemba"];
@@ -44,12 +84,11 @@ import * as cloud from "./cloud.js";
   const CSEE_DIV_PTS = { A: 1, B: 2, C: 3, D: 4, F: 5 };
   const ACSEE_DIV_PTS = { A: 1, B: 2, C: 3, D: 4, E: 5, S: 6, F: 7 };
 
-  const KEY_DATES = [
-    { m: "JUN", d: "2027", what: "HESLB loan applications open", note: "Usually opens in June. Apply on OLAMS.", href: OLAMS_URL },
-    { m: "JUL", d: "2027", what: "Samia Scholarship next round", note: "Opens after ACSEE results.", route: "#/aid" },
-    { m: "JUL", d: "2027", what: "TCU guidebook for 2027/28", note: "Programmes and application windows are published.", href: "https://www.tcu.go.tz" },
-    { m: "SEP", d: "2027", what: "Mo Scholars Program next round", note: "The 2026 window ran 21 Sep to 8 Oct.", route: "#/aid" },
-  ];
+  // Links starting with # open a page inside SERA Apply; anything else opens a website in a new tab.
+  const KEY_DATES = CONTENT.dates.filter((k) => k.title).map((k) => {
+    const link = String(k.link || "").trim();
+    return { m: k.month || "", d: k.year || "", what: k.title, note: k.note || "", ...(link.startsWith("#") ? { route: link } : link ? { href: link } : {}) };
+  });
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const INDEX_RE = /^[SP]\d{4}\/\d{4}\/\d{4}$/i;
@@ -292,7 +331,7 @@ import * as cloud from "./cloud.js";
         <section class="auth-visual" aria-label="About SERA Apply">
           <div class="auth-badge"><img src="assets/sera-logo.svg" alt="SERA"><span>APPLY</span></div>
           <div>
-            <h1 class="auth-headline">One application. Every university in Tanzania.</h1>
+            <h1 class="auth-headline">${esc(SITE.welcome?.headline || "")}</h1>
           </div>
         </section>
         <section class="auth-panel">
@@ -369,7 +408,7 @@ import * as cloud from "./cloud.js";
           <a href="#" data-act="forgot">Forgot your password?</a>
         </div>
         <button class="btn btn-primary btn-block" type="submit">Sign in</button>
-        <p class="small muted" style="margin:0">SERA will never ask you to pay an agent to apply.</p>
+        ${SITE.welcome?.signinNote ? `<p class="small muted" style="margin:0">${esc(SITE.welcome.signinNote)}</p>` : ""}
       </form>`;
   }
 
@@ -756,10 +795,10 @@ import * as cloud from "./cloud.js";
     const dates = `
       <ul class="date-list">
         ${KEY_DATES.map((k) => `
-          <li><div class="cal" aria-hidden="true"><div class="m">${k.m}</div><div class="d" style="font-size:15px">${k.d}</div></div>
-            <div><div class="what">${k.href ? `<a href="${k.href}" target="_blank" rel="noopener">${esc(k.what)}</a>` : `<a href="${k.route}">${esc(k.what)}</a>`}</div><div class="small muted">${esc(k.note)}</div></div></li>`).join("")}
+          <li><div class="cal" aria-hidden="true"><div class="m">${esc(k.m)}</div><div class="d" style="font-size:15px">${esc(k.d)}</div></div>
+            <div><div class="what">${k.href ? `<a href="${esc(k.href)}" target="_blank" rel="noopener">${esc(k.what)}</a>` : k.route ? `<a href="${esc(k.route)}">${esc(k.what)}</a>` : esc(k.what)}</div><div class="small muted">${esc(k.note)}</div></div></li>`).join("")}
       </ul>
-      <p class="small muted" style="margin:14px 0 0">The 2026/27 TCU windows (10 Jul – 10 Aug and 8 – 21 Sep 2026) are closed. Dates are from SERA's October 2026 research. Always check the official site.</p>`;
+      ${SITE.dashboard?.datesNote ? `<p class="small muted" style="margin:14px 0 0">${esc(SITE.dashboard.datesNote)}</p>` : ""}`;
 
     return `
       <div class="greeting">
@@ -1189,22 +1228,22 @@ import * as cloud from "./cloud.js";
     const combo = p.education.combination;
     const a = acseeSummary(p), c = cseeSummary(p);
     if (!a.complete) return null;
-    switch (s.name) {
-      case "Samia Scholarship": return SAMIA_COMBOS.includes(combo);
-      case "Samia Scholarship Extended (DS/AI+)": return ["PCM", "PGM", "PMC"].includes(combo);
-      case "Mwalimu Julius K. Nyerere Memorial Scholarship Fund":
-      case "NMB Nuru Yangu Scholarship":
-      case "Mo Scholars Program": return a.division === "I";
-      case "Karimjee Foundation Scholarship": return a.division === "I" && c.division === "I";
+    // The rule is picked per scholarship in content/scholarships.json ("May fit me" check).
+    switch (s.fit) {
+      case "samia": return SAMIA_COMBOS.includes(combo);
+      case "samia-extended": return ["PCM", "PGM", "PMC"].includes(combo);
+      case "division-1": return a.division === "I";
+      case "division-1-both": return a.division === "I" && c.division === "I";
       default: return null;
     }
   }
 
   function viewAid() {
     const p = P();
-    const samia = D.scholarships.find((s) => s.name === "Samia Scholarship");
-    const others = D.scholarships.filter((s) => s !== samia && !/^HESLB/.test(s.name));
-    const samiaFit = scholarshipFit(samia, p);
+    const samia = D.scholarships.find((s) => s.placement === "featured");
+    const others = D.scholarships.filter((s) => s !== samia);
+    const samiaFit = samia ? scholarshipFit(samia, p) : null;
+    const aid = SITE.aid || {};
     const shown = ui.aidFilter === "fit" ? others.filter((s) => scholarshipFit(s, p)) : others;
     const fitTag = (fit) => fit === true ? `<span class="tag ok">${icon("check")}May fit your profile</span>` : "";
 
@@ -1215,7 +1254,7 @@ import * as cloud from "./cloud.js";
           <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag blue">${esc(s.type)}</span>${fitTag(scholarshipFit(s, p))}</div>
           <h3>${esc(s.name)}</h3>
           <div class="sponsor">${esc(s.sponsor)}</div>
-          <div class="tag" style="justify-self:start;white-space:normal">${icon("clock")}${esc(s.status_oct_2026)}</div>
+          ${s.status ? `<div class="tag" style="justify-self:start;white-space:normal">${icon("clock")}${esc(s.status)}</div>` : ""}
           <dl>
             <div><dt>Who can apply</dt><dd>${esc(s.eligibility)}</dd></div>
             <div class="more">
@@ -1226,7 +1265,7 @@ import * as cloud from "./cloud.js";
           </dl>
           <div class="foot">
             <button class="link-btn" data-act="toggle-sch" data-name="${esc(s.name)}" aria-expanded="${!!open}">${open ? "Show less" : "Show details"}</button>
-            <a class="btn btn-outline btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">Official website ${icon("external", "sm")}</a>
+            ${s.url ? `<a class="btn btn-outline btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">Official website ${icon("external", "sm")}</a>` : ""}
           </div>
         </article>`;
     }).join("");
@@ -1234,11 +1273,11 @@ import * as cloud from "./cloud.js";
     return `
       <div class="page">
         <div class="page-head"><div><h1 class="title">Financial aid</h1>
-          <p class="lead">Scholarships and loans for Form Six leavers studying in Tanzania. SERA does not award these. Always apply on the official website.</p></div></div>
+          ${aid.intro ? `<p class="lead">${esc(aid.intro)}</p>` : ""}</div></div>
 
-        <section class="feature" aria-labelledby="samia-h">
+        ${samia ? `<section class="feature" aria-labelledby="samia-h">
           <div class="l">
-            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag black" style="background:#fff;color:#000">Government scholarship</span>${samiaFit === true ? `<span class="tag ok">${icon("check")}Your combination qualifies</span>` : ""}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag black" style="background:#fff;color:#000">${esc(samia.type || "Scholarship")}</span>${samiaFit === true ? `<span class="tag ok">${icon("check")}Your combination qualifies</span>` : ""}</div>
             <h2 id="samia-h">${esc(samia.name)}</h2>
             <p>${esc(samia.sponsor)}</p>
             <dl>
@@ -1248,20 +1287,20 @@ import * as cloud from "./cloud.js";
           </div>
           <div class="r">
             <dl>
-              <div><dt>Status</dt><dd><strong>${esc(samia.status_oct_2026)}</strong></dd></div>
+              <div><dt>Status</dt><dd><strong>${esc(samia.status || "")}</strong></dd></div>
               <div><dt>When</dt><dd>${esc(samia.timing)}</dd></div>
               <div><dt>How to apply</dt><dd>${esc(samia.how_to_apply)}</dd></div>
             </dl>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
-              <a class="btn btn-light" href="${esc(samia.url)}" target="_blank" rel="noopener">Ministry of Education ${icon("external", "sm")}</a>
-              <a class="btn btn-line" href="${OLAMS_URL}" target="_blank" rel="noopener">Apply on OLAMS ${icon("external", "sm")}</a>
+              ${samia.url ? `<a class="btn btn-light" href="${esc(samia.url)}" target="_blank" rel="noopener">Official website ${icon("external", "sm")}</a>` : ""}
+              <a class="btn btn-line" href="${esc(OLAMS_URL)}" target="_blank" rel="noopener">Apply on OLAMS ${icon("external", "sm")}</a>
             </div>
           </div>
-        </section>
+        </section>` : ""}
 
         <section class="heslb" aria-labelledby="heslb-h">
-          <div><h3 id="heslb-h">HESLB student loan</h3><p>Apply for the Higher Education Students' Loans Board loan on OLAMS, the official online system.</p></div>
-          <a class="btn btn-dark" href="${OLAMS_URL}" target="_blank" rel="noopener">Open OLAMS ${icon("external", "sm")}</a>
+          <div><h3 id="heslb-h">${esc(aid.loanTitle || "HESLB student loan")}</h3>${aid.loanText ? `<p>${esc(aid.loanText)}</p>` : ""}</div>
+          <a class="btn btn-dark" href="${esc(OLAMS_URL)}" target="_blank" rel="noopener">Open OLAMS ${icon("external", "sm")}</a>
         </section>
 
         <hr class="divider">
@@ -1274,7 +1313,7 @@ import * as cloud from "./cloud.js";
         </div>
         ${ui.aidFilter === "fit" && !acseeSummary(p).complete ? `<div class="notice blue" style="margin-bottom:16px">Add your ACSEE results to see which scholarships may fit you. <a href="#/apply/grades">Add results</a></div>` : ""}
         ${shown.length ? `<div class="sch-grid">${cards}</div>` : (acseeSummary(p).complete ? `<p class="muted">None of these match your results yet. Check each one's rules on the official website.</p>` : "")}
-        <p class="small muted" style="margin-top:20px">Information checked by SERA in October 2026. Rules and dates change, so confirm on the sponsor's website before you apply.</p>
+        ${aid.footnote ? `<p class="small muted" style="margin-top:20px">${esc(aid.footnote)}</p>` : ""}
       </div>`;
   }
 
@@ -1426,21 +1465,21 @@ import * as cloud from "./cloud.js";
   }
 
   function openRequirements() {
-    const w = D.rules.tcu_2026_27_windows;
-    const win = (s) => s.split("/").map(fmtDate).join(" – ");
+    // Plain dates (2026-07-10) are read as local days, so they show the same date in every timezone.
+    const win = (w) => `${fmtDate(w.start + "T00:00")} – ${fmtDate(w.end + "T00:00")} <span class="tag">${w.open ? "Open" : "Closed"}</span>`;
+    const names = ["First window", "Second window"];
     openModal(`
-      ${modalHead("Application requirements", "TCU 2026/27")}
+      ${modalHead("Application requirements", esc(REQ.label || "TCU"))}
       <div class="modal-body">
         <div class="kv">
           <div class="k">Most programmes</div><div>${esc(D.rules.tcu_minimum.general)}</div>
           <div class="k">Health programmes</div><div>${esc(D.rules.tcu_minimum.health)}</div>
           <div class="k">Grade points</div><div>${Object.entries(TCU_POINTS).map(([g, v]) => `${g} = ${v}`).join(", ")}</div>
-          <div class="k">First window</div><div>${win(w.window_1)} <span class="tag">Closed</span></div>
-          <div class="k">Second window</div><div>${win(w.window_2)} <span class="tag">Closed</span></div>
+          ${D.rules.tcu_windows.map((w, n) => `<div class="k">${names[n] || "Window"}</div><div>${win(w)}</div>`).join("")}
         </div>
-        <p class="small muted" style="margin:0">You apply to each institution on its own admission portal. Check the 2027/28 TCU guidebook, usually out in July, for next year's dates.</p>
+        ${REQ.note ? `<p class="small muted" style="margin:0">${esc(REQ.note)}</p>` : ""}
       </div>
-      <div class="modal-foot"><a class="btn btn-ghost" href="https://www.tcu.go.tz" target="_blank" rel="noopener">TCU website ${icon("external", "sm")}</a><button class="btn btn-primary" data-act="close">Done</button></div>`, { label: "Application requirements" });
+      <div class="modal-foot"><a class="btn btn-ghost" href="${esc(REQ.tcuUrl || "https://www.tcu.go.tz")}" target="_blank" rel="noopener">TCU website ${icon("external", "sm")}</a><button class="btn btn-primary" data-act="close">Done</button></div>`, { label: "Application requirements" });
   }
 
   function openApply(id) {

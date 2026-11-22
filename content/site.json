@@ -1,0 +1,37 @@
+{
+  "welcome": {
+    "headline": "One application. Every university in Tanzania.",
+    "signinNote": "SERA will never ask you to pay an agent to apply."
+  },
+  "dashboard": {
+    "datesNote": "The 2026/27 TCU windows (10 Jul – 10 Aug and 8 – 21 Sep 2026) are closed. Dates are from SERA's October 2026 research. Always check the official site."
+  },
+  "aid": {
+    "intro": "Scholarships and loans for Form Six leavers studying in Tanzania. SERA does not award these. Always apply on the official website.",
+    "loanTitle": "HESLB student loan",
+    "loanText": "Apply for the Higher Education Students' Loans Board loan on OLAMS, the official online system.",
+    "loanUrl": "https://olas.heslb.go.tz",
+    "footnote": "Information checked by SERA in October 2026. Rules and dates change, so confirm on the sponsor's website before you apply."
+  },
+  "requirements": {
+    "label": "TCU 2026/27",
+    "general": "2 principal passes, total >= 4.0 points in the programme's defining subjects",
+    "health": "3 principal passes, total >= 6.0 points",
+    "window1Start": "2026-07-10",
+    "window1End": "2026-08-10",
+    "window1Open": false,
+    "window2Start": "2026-09-08",
+    "window2End": "2026-09-21",
+    "window2Open": false,
+    "note": "You apply to each institution on its own admission portal. Check the 2027/28 TCU guidebook, usually out in July, for next year's dates.",
+    "tcuUrl": "https://www.tcu.go.tz",
+    "points": {
+      "A": 5,
+      "B": 4,
+      "C": 3,
+      "D": 2,
+      "E": 1,
+      "S": 0.5
+    }
+  }
+}
