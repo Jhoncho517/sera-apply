@@ -1,6 +1,8 @@
 /* SERA Apply — one application for universities in Tanzania.
-   Front-end prototype: accounts and applications are stored in this browser (localStorage).
+   Sign-in uses Firebase Authentication; each student's account is stored in Firestore (see js/cloud.js).
    Reference data (institutions, schools, scholarships, rules) comes from js/data.js. */
+import * as cloud from "./cloud.js";
+
 (() => {
   "use strict";
 
@@ -8,7 +10,6 @@
   const INST = Object.fromEntries(D.institutions.map((i) => [i.id, i]));
   const SCHOOLS = D.schools;
   const OLAMS_URL = "https://olas.heslb.go.tz";
-  const STORE_KEY = "sera-apply.v1";
 
   // ---------- Reference lists ----------
   const REGIONS = ["Arusha", "Dar es Salaam", "Dodoma", "Geita", "Iringa", "Kagera", "Katavi", "Kigoma", "Kilimanjaro", "Lindi", "Manyara", "Mara", "Mbeya", "Morogoro", "Mtwara", "Mwanza", "Njombe", "Pwani", "Rukwa", "Ruvuma", "Shinyanga", "Simiyu", "Singida", "Songwe", "Tabora", "Tanga", "Kaskazini Unguja", "Kusini Unguja", "Mjini Magharibi", "Kaskazini Pemba", "Kusini Pemba"];
@@ -146,62 +147,35 @@
     toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
   }
 
-  // ---------- Storage ----------
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        d.users = d.users || {};
-        Object.values(d.users).forEach((u) => {
-          const c = u.profile && u.profile.contact;
-          if (c) { if (c.phone) c.phone = upgradePhone(c.phone); if (c.altPhone) c.altPhone = upgradePhone(c.altPhone); }
-        });
-        return d;
-      }
-    } catch (e) { /* storage unavailable: start empty */ }
-    return { users: {}, session: null };
-  }
-  let db = load();
+  // ---------- Account (Firestore) ----------
+  let account = null;   // the signed-in student's account, loaded from Firestore
+  let authUser = null;  // the Firebase user (email, emailVerified)
+  let authReady = false;
+  let pendingUser = null; // signed in to Firebase (e.g. Google, first time) but no SERA account yet
   function persist() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); return true; } catch (e) {
-      toast("This browser could not save your changes.");
-      return false;
-    }
+    if (!account) return false;
+    cloud.save(account).catch(() => toast("Could not save your changes. Check your internet connection."));
+    return true;
   }
-  const me = () => (db.session ? db.users[db.session] : null);
+  const me = () => account;
   const P = () => me().profile;
 
-  async function hashPassword(pw, salt) {
-    const text = salt + ":" + pw;
-    if (window.crypto?.subtle) {
-      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-    }
-    let h = 2166136261;
-    for (const c of text) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
-    return "f" + (h >>> 0).toString(16);
+  // Accounts used on this device, so the student can tap theirs on the sign-in screen.
+  // Holds only name, email and SERA ID; the account itself stays in Firestore.
+  const DEVICE_KEY = "sera-apply.accounts";
+  function deviceAccounts() {
+    try { const a = JSON.parse(localStorage.getItem(DEVICE_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
   }
-
-  // Every account gets a unique SERA ID: SRID followed by five digits.
-  function newSrid() {
-    const taken = new Set(Object.keys(db.users));
-    if (taken.size >= 90000) throw new Error("No SERA IDs left");
-    let id;
-    do {
-      const n = window.crypto?.getRandomValues ? crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 1e9);
-      id = "SRID" + String(10000 + (n % 90000));
-    } while (taken.has(id));
-    return id;
+  function setDeviceAccounts(list) {
+    try { localStorage.setItem(DEVICE_KEY, JSON.stringify(list)); } catch (e) { /* not remembered on this device */ }
   }
+  function rememberAccount(u) {
+    const name = [u.profile.personal.first, u.profile.personal.last].filter(Boolean).join(" ");
+    setDeviceAccounts([{ srid: u.srid, email: u.email, name, lastLogin: new Date().toISOString() }, ...deviceAccounts().filter((a) => a.srid !== u.srid)].slice(0, 5));
+  }
+  const forgetAccount = (srid) => setDeviceAccounts(deviceAccounts().filter((a) => a.srid !== srid));
+  try { localStorage.removeItem("sera-apply.v1"); } catch (e) { /* old prototype storage; accounts now live in Firestore */ }
 
-  const findUser = (login) => {
-    const key = login.trim();
-    if (/^srid\d{5}$/i.test(key)) return db.users[key.toUpperCase()];
-    if (key.includes("@")) return Object.values(db.users).find((u) => u.email.toLowerCase() === key.toLowerCase());
-    return findByPhone(key);
-  };
-  const findByPhone = (v) => { const k = phoneKey(v); return k ? Object.values(db.users).find((u) => phoneKey(u.profile?.contact?.phone) === k) : undefined; };
   const maskEmail = (e) => String(e).replace(/^(.).*(@.*)$/, "$1***$2");
 
   // ---------- Profile sections and results maths ----------
@@ -280,8 +254,13 @@
   function render() {
     closeModal();
     const r = route();
+    if (!authReady) {
+      root.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center"><p class="muted">Loading…</p></div>`;
+      return;
+    }
     const user = me();
     if (!user) {
+      if (pendingUser) return renderFinish();
       if (r.name !== "welcome" && r.name !== "signup") { location.replace("#/welcome"); return renderAuth("signin"); }
       return renderAuth(r.name === "signup" ? "signup" : "signin");
     }
@@ -299,6 +278,15 @@
   // ---------- Auth screens ----------
   function renderAuth(tab) {
     document.title = (tab === "signup" ? "Create account" : "Sign in") + " · SERA Apply";
+    authLayout(`
+            <div class="tabs" role="tablist">
+              <button class="tab" role="tab" aria-selected="${tab === "signin"}" data-act="nav" data-href="#/welcome">Sign in</button>
+              <button class="tab" role="tab" aria-selected="${tab === "signup"}" data-act="nav" data-href="#/signup">Create account</button>
+            </div>
+            ${tab === "signup" ? signupForm() : signinForm()}`);
+  }
+
+  function authLayout(card) {
     root.innerHTML = `
       <div class="auth">
         <section class="auth-visual" aria-label="About SERA Apply">
@@ -310,11 +298,7 @@
         <section class="auth-panel">
           <div class="auth-card">
             <img class="auth-logo" src="assets/sera-logo.svg" alt="SERA">
-            <div class="tabs" role="tablist">
-              <button class="tab" role="tab" aria-selected="${tab === "signin"}" data-act="nav" data-href="#/welcome">Sign in</button>
-              <button class="tab" role="tab" aria-selected="${tab === "signup"}" data-act="nav" data-href="#/signup">Create account</button>
-            </div>
-            ${tab === "signup" ? signupForm() : signinForm()}
+            ${card}
           </div>
         </section>
       </div>`;
@@ -322,30 +306,68 @@
     if (first) first.focus();
   }
 
+  const GOOGLE_G = `<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" style="margin-right:10px;flex:none"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.5-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`;
+  const googleButton = () => `
+        <button type="button" class="btn btn-block" data-act="google" style="justify-content:center">${GOOGLE_G}Continue with Google</button>
+        <div class="small muted" style="display:flex;align-items:center;gap:10px" aria-hidden="true"><span style="flex:1;border-top:1px solid var(--line)"></span>or<span style="flex:1;border-top:1px solid var(--line)"></span></div>`;
+  const phoneField = (prefix) => `
+        <div class="field"><label for="${prefix}-phone">Mobile number <span class="muted" style="font-weight:400">(optional)</span></label>
+          <div style="display:flex;gap:8px"><select class="select" id="${prefix}-cc" data-phone-for="${prefix}-phone" aria-label="Country" style="flex:0 0 46%">${countryOptions()}</select>
+          <input class="input" id="${prefix}-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="+255 " placeholder="+255 712 345 678" style="flex:1"></div>
+          <span class="hint">You can add it later in your profile. Any country, starting with the country code.</span></div>`;
+  const consentBox = () => `<label class="check"><input type="checkbox" name="consent"> <span>I agree that SERA keeps my details to help me apply. I can download or delete them at any time.</span></label>`;
+  // The number is optional. The box starts with the country code, so a code with nothing after it counts as blank.
+  // Returns { phone } ("" when blank) or { error }.
+  function readPhone(form, prefix) {
+    const raw = form.phone.value.trim();
+    const cc = document.getElementById(prefix + "-cc")?.value || "";
+    const typed = normPhone(raw).slice(1);
+    if (!typed || typed === cc) return { phone: "" };
+    return isPhone(raw) ? { phone: normPhone(raw) } : { error: PHONE_MSG };
+  }
+  const newAccount = (first, middle, last, now) => ({
+    createdAt: now,
+    lastLogin: now,
+    consent: { storeDetails: now },
+    profile: {
+      personal: { first, middle, last },
+      address: {}, contact: {}, education: {},
+      grades: { csee: {}, acsee: {} },
+    },
+    myUnis: [], applications: [],
+  });
+
+  const setupNotice = () => cloud.configured ? "" : `<div class="notice warn">Sign-in is not set up yet. Add your Firebase project settings to <code>js/firebase-config.js</code>. The README explains how.</div>`;
+
   function signinForm() {
-    const saved = Object.values(db.users).sort((a, b) => (b.lastLogin || "").localeCompare(a.lastLogin || ""));
+    const saved = deviceAccounts();
     const cards = saved.length ? `
       <div role="group" aria-label="Accounts on this device">
         <div class="small muted" style="margin-bottom:8px">Accounts on this device. Tap yours, then enter your password.</div>
-        ${saved.map((u) => { const n = [u.profile.personal.first, u.profile.personal.last].filter(Boolean).join(" ") || u.email; return `
-          <button type="button" class="btn btn-block" data-act="pick-account" data-srid="${u.srid}" style="justify-content:flex-start;text-align:left;margin-bottom:8px">
+        ${saved.map((u) => { const n = u.name || u.email; return `
+          <button type="button" class="btn btn-block" data-act="pick-account" data-email="${esc(u.email)}" style="justify-content:flex-start;text-align:left;margin-bottom:8px">
             <span aria-hidden="true" style="display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;margin-right:10px;flex:none">${esc((n[0] || "?").toUpperCase())}</span>
-            <span><strong>${esc(n)}</strong><br><span class="small muted">${u.srid} · ${esc(maskEmail(u.email))}</span></span>
+            <span><strong>${esc(n)}</strong><br><span class="small muted">${esc(u.srid)} · ${esc(maskEmail(u.email))}</span></span>
           </button>`; }).join("")}
       </div>` : "";
     return `
       <form class="form" id="signin" novalidate>
         <div>
           <h2 class="h2">${saved.length ? "Welcome back" : "Sign in"}</h2>
-          <p class="muted" style="margin:8px 0 0">Use your email, phone number or SERA ID. One person, one account. New here? <a href="#/signup">Create an account</a>.</p>
+          <p class="muted" style="margin:8px 0 0">Use the email you signed up with. One person, one account. New here? <a href="#/signup">Create an account</a>.</p>
         </div>
+        ${setupNotice()}
         ${cards}
         <div class="err" id="signin-err" role="alert"></div>
-        <div class="field"><label for="si-login">Email, phone or SERA ID<span class="req">*</span></label>
-          <input class="input" id="si-login" name="login" autocomplete="username" placeholder="name@example.com, +255712345678 or SRID12345"></div>
+        ${googleButton()}
+        <div class="field"><label for="si-login">Email<span class="req">*</span></label>
+          <input class="input" id="si-login" name="login" type="email" autocomplete="username" placeholder="name@example.com"></div>
         <div class="field"><label for="si-pw">Password<span class="req">*</span></label>
           <input class="input" id="si-pw" name="pw" type="password" autocomplete="current-password"></div>
-        <label class="check"><input type="checkbox" data-act="showpw" data-for="si-pw"> Show password</label>
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="check"><input type="checkbox" data-act="showpw" data-for="si-pw"> Show password</label>
+          <a href="#" data-act="forgot">Forgot your password?</a>
+        </div>
         <button class="btn btn-primary btn-block" type="submit">Sign in</button>
         <p class="small muted" style="margin:0">SERA will never ask you to pay an agent to apply.</p>
       </form>`;
@@ -358,90 +380,248 @@
           <h2 class="h2">Create your account</h2>
           <p class="muted" style="margin:8px 0 0">You will get a SERA ID that stays with you. Already have one? <a href="#/welcome">Sign in</a>.</p>
         </div>
+        ${setupNotice()}
         <div class="err" id="signup-err" role="alert"></div>
+        ${googleButton()}
         <div class="grid-2">
           <div class="field"><label for="su-first">First name<span class="req">*</span></label><input class="input" id="su-first" name="first" autocomplete="given-name"></div>
           <div class="field"><label for="su-last">Last name<span class="req">*</span></label><input class="input" id="su-last" name="last" autocomplete="family-name"></div>
         </div>
         <div class="field"><label for="su-email">Email<span class="req">*</span></label><input class="input" id="su-email" name="email" type="email" autocomplete="email" placeholder="name@example.com"></div>
-        <div class="field"><label for="su-phone">Mobile number<span class="req">*</span></label>
-          <div style="display:flex;gap:8px"><select class="select" id="su-cc" aria-label="Country" style="flex:0 0 46%">${countryOptions()}</select>
-          <input class="input" id="su-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="+255 " placeholder="+255 712 345 678" style="flex:1"></div>
-          <span class="hint">Any country. Starts with the country code.</span></div>
+        ${phoneField("su")}
         <div class="grid-2">
           <div class="field"><label for="su-pw">Password<span class="req">*</span></label><input class="input" id="su-pw" name="pw" type="password" autocomplete="new-password"><span class="hint">At least 8 characters.</span></div>
           <div class="field"><label for="su-pw2">Confirm password<span class="req">*</span></label><input class="input" id="su-pw2" name="pw2" type="password" autocomplete="new-password"></div>
         </div>
-        <label class="check"><input type="checkbox" name="consent"> <span>I agree that SERA keeps my details to help me apply. I can download or delete them at any time.</span></label>
+        ${consentBox()}
         <button class="btn btn-primary btn-block" type="submit">Create my account</button>
       </form>`;
   }
 
+  // First Google sign-in (or an email sign-up that was cut off): confirm the name, optionally add a number, and agree to SERA keeping the details.
+  function renderFinish() {
+    document.title = "Finish your account · SERA Apply";
+    const parts = String(pendingUser.displayName || "").trim().split(/\s+/).filter(Boolean);
+    const first = parts[0] || "", last = parts.length > 1 ? parts[parts.length - 1] : "", middle = parts.slice(1, -1).join(" ");
+    authLayout(`
+      <form class="form" id="finish" novalidate>
+        <div>
+          <h2 class="h2">Finish your account</h2>
+          <p class="muted" style="margin:8px 0 0">You are signed in as <strong>${esc(pendingUser.email || "")}</strong>. Check your name, then create your SERA ID.</p>
+        </div>
+        <div class="err" id="finish-err" role="alert"></div>
+        <div class="grid-2">
+          <div class="field"><label for="fi-first">First name<span class="req">*</span></label><input class="input" id="fi-first" name="first" autocomplete="given-name" value="${esc(first)}"></div>
+          <div class="field"><label for="fi-last">Last name<span class="req">*</span></label><input class="input" id="fi-last" name="last" autocomplete="family-name" value="${esc(last)}"></div>
+        </div>
+        <input type="hidden" name="middle" value="${esc(middle)}">
+        ${phoneField("fi")}
+        ${consentBox()}
+        <button class="btn btn-primary btn-block" type="submit">Create my account</button>
+        <p class="small muted" style="margin:0">Not you? <a href="#" data-act="signout">Use a different account</a>.</p>
+      </form>`);
+    const f = $("#fi-first");
+    if (f && !f.value) f.focus();
+  }
+
+  async function onFinish(form) {
+    const err = $("#finish-err");
+    const fail = (m) => { err.innerHTML = icon("alert", "sm") + esc(m); err.scrollIntoView({ block: "nearest" }); };
+    const first = form.first.value.trim(), last = form.last.value.trim();
+    if (!first || !last) return fail("Enter your first and last name.");
+    const ph = readPhone(form, "fi");
+    if (ph.error) return fail(ph.error);
+    if (!form.consent.checked) return fail("Tick the box to agree that SERA keeps your details.");
+    busy(form, true, "Creating your account…");
+    let res;
+    try {
+      res = await cloud.createAccount({ phone: ph.phone, phoneKey: ph.phone ? phoneKey(ph.phone) : "", account: newAccount(first, form.middle.value.trim(), last, new Date().toISOString()) });
+    } catch (e) {
+      busy(form, false);
+      return fail(authMessage(e));
+    }
+    pendingUser = null;
+    account = res.account; authUser = res.user;
+    rememberAccount(account);
+    history.pushState(null, "", "#/dashboard");
+    render();
+    showWelcome(first, account.srid, "", cloud.usesPassword() ? "You sign in with your email and password." : "You sign in with Google.");
+  }
+
+  async function onGoogle() {
+    const box = $("#signin-err") || $("#signup-err");
+    if (!cloud.configured) { if (box) box.innerHTML = icon("alert", "sm") + "Sign-in is not set up yet."; return; }
+    try {
+      await cloud.signInWithGoogle(); // onAccount (below) opens the dashboard, or the finish screen for a new student.
+    } catch (e) {
+      if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+      if (box) box.innerHTML = icon("alert", "sm") + esc(authMessage(e));
+    }
+  }
+
+  function showWelcome(first, srid, verifyEmail, how) {
+    openModal(`
+      <div class="modal-body receipt" style="padding-top:34px">
+        <div class="ok-ring">${icon("check")}</div>
+        <h2 class="h2">Welcome to SERA Apply, ${esc(first)}</h2>
+        <p class="muted" style="margin:0">This is your SERA ID. It stays with you. ${esc(how)}</p>
+        <div class="big">${esc(srid)}</div>
+        ${verifyEmail ? `<p class="small muted" style="margin:0">We sent a link to <strong>${esc(verifyEmail)}</strong>. Open it to confirm your email.</p>` : ""}
+      </div>
+      <div class="modal-foot"><button class="btn btn-primary" data-act="close">Go to my dashboard</button></div>`, { label: "Your SERA ID" });
+  }
+
+  // Firebase error codes → plain messages.
+  function authMessage(e) {
+    switch (e && e.code) {
+      case "auth/invalid-credential": case "auth/wrong-password": case "auth/user-not-found": case "auth/invalid-email":
+        return "That email or password is not right. Check it and try again. If you signed up with Google, use Continue with Google.";
+      case "auth/too-many-requests": return "Too many tries. Wait a few minutes, or reset your password.";
+      case "auth/network-request-failed": case "unavailable": return "No internet connection. Check it and try again.";
+      case "auth/email-already-in-use": return "There is already an account with this email. Sign in instead (with Google, if that is how you signed up), or reset your password.";
+      case "auth/account-exists-with-different-credential": return "This email already has a SERA Apply account. Sign in with your email and password.";
+      case "auth/popup-blocked": return "Your browser blocked the Google window. Allow pop-ups for this site and try again.";
+      case "auth/unauthorized-domain": return "Google sign-in is not allowed on this website yet. In Firebase, add this domain under Authentication → Settings → Authorized domains.";
+      case "auth/operation-not-allowed": return "This way of signing in is not turned on in Firebase yet.";
+      case "auth/weak-password": return "Choose a stronger password: at least 8 characters.";
+      case "auth/user-disabled": return "This account has been turned off. Contact SERA for help.";
+      case "auth/requires-recent-login": return "For your safety, sign in again and then try once more.";
+      case "sera/phone-in-use": return "There is already an account with this mobile number. Sign in instead of creating another one.";
+      case "sera/no-account": return "This account was not finished. Create your account again.";
+      case "permission-denied": console.error("Firestore refused the write. Check that firestore.rules is published.", e);
+        return "SERA Apply could not save your account. Try again in a moment, or contact SERA if it keeps happening.";
+      default: console.error(e); return "Something went wrong. Try again in a moment.";
+    }
+  }
+  function busy(form, on, label) {
+    const b = form.querySelector('button[type="submit"]');
+    if (!b) return;
+    if (on) { b.dataset.label = b.textContent; b.textContent = label; b.disabled = true; }
+    else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
+  }
+
   async function onSignin(form) {
     const err = $("#signin-err");
+    const fail = (m) => { err.innerHTML = icon("alert", "sm") + esc(m); };
+    if (!cloud.configured) return fail("Sign-in is not set up yet.");
     const login = form.login.value.trim(), pw = form.pw.value;
-    if (!login || !pw) { err.innerHTML = icon("alert", "sm") + "Enter your email or SERA ID and your password."; return; }
-    const u = findUser(login);
-    if (!u || (await hashPassword(pw, u.srid)) !== u.pass) {
-      err.innerHTML = icon("alert", "sm") + "That email, SERA ID or password is not right. Check it and try again.";
-      return;
+    if (!login || !pw) return fail("Enter your email and your password.");
+    if (!EMAIL_RE.test(login)) return fail("Enter the email you signed up with, like name@example.com.");
+    busy(form, true, "Signing in…");
+    try {
+      await cloud.signIn(login, pw); // onAccount (below) loads the account and opens the dashboard.
+    } catch (e) {
+      busy(form, false);
+      fail(authMessage(e));
     }
-    db.session = u.srid;
-    u.lastLogin = new Date().toISOString();
-    persist();
-    go("#/dashboard");
+  }
+
+  function onForgot() {
+    const typed = document.getElementById("si-login")?.value.trim() || "";
+    openModal(`
+      ${modalHead("Reset your password")}
+      <form class="modal-body form" id="forgot" novalidate>
+        <p class="muted" style="margin:0">We will email you a link to choose a new password.</p>
+        <div class="err" id="forgot-err" role="alert"></div>
+        <div class="field"><label for="fp-email">Email<span class="req">*</span></label>
+          <input class="input" id="fp-email" name="email" type="email" autocomplete="email" value="${esc(typed)}" placeholder="name@example.com"></div>
+      </form>
+      <div class="modal-foot"><button class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-primary" type="submit" form="forgot">Send the link</button></div>`, { label: "Reset your password" });
+  }
+  async function onForgotSubmit(form) {
+    const err = $("#forgot-err");
+    const email = form.email.value.trim();
+    if (!EMAIL_RE.test(email)) { err.innerHTML = icon("alert", "sm") + "Enter an email like name@example.com."; return; }
+    if (!cloud.configured) { err.innerHTML = icon("alert", "sm") + "Sign-in is not set up yet."; return; }
+    try {
+      await cloud.resetPassword(email);
+    } catch (e) {
+      if (e.code === "auth/network-request-failed" || e.code === "auth/too-many-requests") { err.innerHTML = icon("alert", "sm") + esc(authMessage(e)); return; }
+      // Any other error: show the same message, so the form does not reveal which emails have accounts.
+    }
+    closeModal();
+    toast("If that email has an account, a reset link is on its way.");
   }
 
   async function onSignup(form) {
     const err = $("#signup-err");
     const v = Object.fromEntries(["first", "last", "email", "phone", "pw", "pw2"].map((k) => [k, form[k].value.trim()]));
     const fail = (m) => { err.innerHTML = icon("alert", "sm") + esc(m); err.scrollIntoView({ block: "nearest" }); };
+    if (!cloud.configured) return fail("Sign-in is not set up yet.");
     if (!v.first || !v.last) return fail("Enter your first and last name.");
     if (!EMAIL_RE.test(v.email)) return fail("Enter an email like name@example.com.");
-    const dupe = (u, why) => {
-      fail(`You already have an account (${u.srid}) with this ${why}. Sign in instead of creating another one.`);
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "btn"; b.textContent = "Sign in as " + u.srid;
-      b.dataset.act = "pick-account"; b.dataset.srid = u.srid;
-      err.appendChild(b);
-    };
-    const exE = findUser(v.email);
-    if (exE) return dupe(exE, "email");
-    if (!isPhone(v.phone)) return fail(PHONE_MSG);
-    v.phone = normPhone(v.phone);
-    const exP = findByPhone(v.phone);
-    if (exP) return dupe(exP, "phone number");
+    const ph = readPhone(form, "su");
+    if (ph.error) return fail(ph.error);
+    v.phone = ph.phone;
     if (form.pw.value.length < 8) return fail("Your password needs at least 8 characters.");
     if (form.pw.value !== form.pw2.value) return fail("The two passwords do not match.");
     if (!form.consent.checked) return fail("Tick the box to agree that SERA keeps your details.");
 
-    const srid = newSrid();
-    db.users[srid] = {
-      srid,
-      email: v.email,
-      pass: await hashPassword(form.pw.value, srid),
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      consent: { storeDetails: new Date().toISOString() },
-      profile: {
-        personal: { first: v.first, middle: "", last: v.last },
-        address: {}, contact: { email: v.email, phone: v.phone }, education: {},
-        grades: { csee: {}, acsee: {} },
-      },
-      myUnis: [], applications: [],
-    };
-    db.session = srid;
-    persist();
+    const now = new Date().toISOString();
+    busy(form, true, "Creating your account…");
+    let res;
+    try {
+      res = await cloud.signUp({
+        email: v.email,
+        password: form.pw.value,
+        phone: v.phone,
+        phoneKey: v.phone ? phoneKey(v.phone) : "",
+        account: newAccount(v.first, "", v.last, now),
+      });
+    } catch (e) {
+      busy(form, false);
+      fail(authMessage(e));
+      if (e.code === "auth/email-already-in-use" || e.code === "sera/phone-in-use") {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "btn"; b.textContent = "Go to sign in";
+        b.dataset.act = "nav"; b.dataset.href = "#/welcome";
+        err.appendChild(b);
+      }
+      return;
+    }
+    account = res.account; authUser = res.user;
+    rememberAccount(account);
     history.pushState(null, "", "#/dashboard");
     render();
+    showWelcome(v.first, account.srid, v.email, "You sign in with your email and password.");
+  }
+
+  // Ask for the password (or Google) again, then delete the account from Firebase.
+  function openDeleteAccount() {
+    const u = me(), pw = cloud.usesPassword();
     openModal(`
-      <div class="modal-body receipt" style="padding-top:34px">
-        <div class="ok-ring">${icon("check")}</div>
-        <h2 class="h2">Welcome to SERA Apply, ${esc(v.first)}</h2>
-        <p class="muted" style="margin:0">This is your SERA ID. It is saved on this device, so next time just tap your account and enter your password. You can also sign in with it.</p>
-        <div class="big">${srid}</div>
-      </div>
-      <div class="modal-foot"><button class="btn btn-primary" data-act="close">Go to my dashboard</button></div>`, { label: "Your SERA ID" });
+      ${modalHead("Delete your account?")}
+      <form class="modal-body form" id="delete-form" novalidate>
+        <p style="margin:0">This removes your profile, results and applications for <strong>${esc(u.srid)}</strong> from SERA Apply. You cannot undo this.</p>
+        <div class="err" id="delete-err" role="alert"></div>
+        ${pw ? `<div class="field"><label for="del-pw">Enter your password to confirm<span class="req">*</span></label>
+          <input class="input" id="del-pw" name="pw" type="password" autocomplete="current-password"></div>` : `<p class="muted" style="margin:0">Google will ask you to confirm it is you.</p>`}
+      </form>
+      <div class="modal-foot"><button class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-danger" type="submit" form="delete-form">Delete my account</button></div>`, { label: "Delete your account?" });
+  }
+  async function onDeleteSubmit(form) {
+    const err = $("#delete-err");
+    const pw = form.pw ? form.pw.value : "";
+    if (form.pw && !pw) { err.innerHTML = icon("alert", "sm") + "Enter your password."; return; }
+    const btn = document.querySelector('button[form="delete-form"]');
+    if (btn) { btn.disabled = true; btn.textContent = "Deleting…"; }
+    const srid = me().srid;
+    try {
+      await cloud.deleteAccount(pw, me());
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = "Delete my account"; }
+      if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+      err.innerHTML = icon("alert", "sm") + esc(e.code === "auth/invalid-credential" || e.code === "auth/wrong-password" ? "That password is not right." : authMessage(e));
+      return;
+    }
+    forgetAccount(srid);
+    render(); // signed out by now: redraw the sign-in screen without this account
+    toast("Your account has been deleted");
+  }
+
+  async function checkVerified() {
+    if (await cloud.isVerified()) { render(); toast("Email confirmed. Thank you."); }
+    else toast("Not confirmed yet. Open the link in the email we sent.");
   }
 
   // ---------- Shell ----------
@@ -588,6 +768,11 @@
       </div>
       <div class="page">
         <h1 class="title" style="margin-bottom:32px">Dashboard</h1>
+        ${authUser && !authUser.emailVerified ? `
+          <div class="notice blue" style="margin-bottom:20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+            <span><strong>Confirm your email.</strong> We sent a link to ${esc(u.email)}. Universities will use this email to reach you.</span>
+            <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" data-act="verified">I have confirmed it</button><button class="btn btn-ghost btn-sm" data-act="resend-verify">Send it again</button></span>
+          </div>` : ""}
         ${section("d-app", "My SERA Apply", `
           <div class="progress-label">${done}/${SECTIONS.length} sections complete</div>
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Application progress"><span style="width:${pct}%"></span></div>
@@ -1437,6 +1622,9 @@
     e.preventDefault();
     if (e.target.id === "signin") onSignin(e.target);
     if (e.target.id === "signup") onSignup(e.target);
+    if (e.target.id === "finish") onFinish(e.target);
+    if (e.target.id === "forgot") onForgotSubmit(e.target);
+    if (e.target.id === "delete-form") onDeleteSubmit(e.target);
     if (e.target.id === "apply-form-modal") submitApply();
   });
 
@@ -1462,12 +1650,18 @@
         e.preventDefault();
         if (route().name !== "welcome") location.hash = "#/welcome";
         setTimeout(() => {
-          const l = document.getElementById("si-login"), u = db.users[t.dataset.srid];
-          if (l && u) { l.value = u.srid; const pw = document.getElementById("si-pw"); if (pw) pw.focus(); }
+          const l = document.getElementById("si-login");
+          if (l) { l.value = t.dataset.email; const pw = document.getElementById("si-pw"); if (pw) pw.focus(); }
         }, 30);
         break;
       }
-      case "signout": e.preventDefault(); db.session = null; persist(); go("#/welcome"); break;
+      case "forgot": e.preventDefault(); onForgot(); break;
+      case "google": onGoogle(); break;
+      case "verified": checkVerified(); break;
+      case "resend-verify":
+        cloud.resendVerification().then(() => toast("Sent. Check your inbox and spam folder."), (err) => toast(authMessage(err)));
+        break;
+      case "signout": e.preventDefault(); cloud.signOut(); break;
       case "collapse": ui.collapsed[id] = !ui.collapsed[id]; t.setAttribute("aria-expanded", String(!ui.collapsed[id])); break;
       case "copy": {
         const text = t.dataset.text;
@@ -1531,7 +1725,7 @@
         break;
       }
       case "download": {
-        const { pass, ...data } = u;
+        const { uid, phoneClaim, ...data } = u;
         if (window.SERA_EMBED) { showDataCopy(JSON.stringify(data, null, 2)); break; }
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const link = document.createElement("a");
@@ -1541,11 +1735,7 @@
         setTimeout(() => URL.revokeObjectURL(link.href), 1000);
         break;
       }
-      case "delete-account":
-        confirmDialog("Delete your account?", `This removes your profile, results and applications for <strong>${u.srid}</strong> from this device. You cannot undo this.`, "Delete my account", () => {
-          delete db.users[u.srid]; db.session = null; persist(); go("#/welcome");
-        }, true);
-        break;
+      case "delete-account": openDeleteAccount(); break;
       case "copy-data": {
         const ta = $("#data-copy");
         (navigator.clipboard?.writeText(ta.value) || Promise.reject()).then(() => toast("Copied"), () => { ta.focus(); ta.select(); toast("Selected. Press Ctrl+C to copy."); });
@@ -1556,8 +1746,8 @@
   });
 
   document.addEventListener("change", (e) => {
-    if (e.target.id !== "su-cc") return;
-    const ph = document.getElementById("su-phone");
+    if (!e.target.dataset.phoneFor) return;
+    const ph = document.getElementById(e.target.dataset.phoneFor);
     const rest = normPhone(ph.value).slice(1).replace(new RegExp("^(" + CC_ALT + ")"), "");
     ph.value = "+" + e.target.value + " " + rest;
     ph.focus();
@@ -1643,8 +1833,23 @@
 
   window.addEventListener("hashchange", render);
   window.addEventListener("storage", (e) => {
-    if (e.key === STORE_KEY) { db = load(); render(); }
     if (e.key === THEME_KEY) applyTheme(THEMES.some((t) => t.id === e.newValue) ? e.newValue : "light");
+  });
+  // Firebase tells us when the student signs in or out (also on page load and in other tabs).
+  cloud.onAccount((acc, user, err) => {
+    const wasSignedIn = !!account || !!pendingUser;
+    account = acc; authUser = user; authReady = true;
+    pendingUser = !acc && user ? user : null;
+    if (acc) {
+      acc.lastLogin = new Date().toISOString();
+      persist();
+      rememberAccount(acc);
+      if (!wasSignedIn && ["welcome", "signup", ""].includes(route().name)) { go("#/dashboard"); return; }
+    } else if (wasSignedIn && !user) {
+      go("#/welcome"); return;
+    }
+    render();
+    if (err) { const box = $("#signin-err"); if (box) box.innerHTML = icon("alert", "sm") + esc(authMessage(err)); }
   });
   render();
 })();
